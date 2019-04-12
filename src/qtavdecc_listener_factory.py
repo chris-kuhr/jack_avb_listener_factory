@@ -1,0 +1,91 @@
+# -*- coding: utf-8 -*-
+
+# Form implementation generated from reading ui file 'qt/mainWindow.ui'
+#
+# Created by: PyQt5 UI code generator 5.5.1
+#
+# WARNING! All changes made in this file will be lost!
+
+from PyQt5 import QtCore, QtGui, QtWidgets
+
+class Ui_MainWindow(object):
+    def setupUi(self, MainWindow):
+        MainWindow.setObjectName("MainWindow")
+        MainWindow.resize(1691, 1106)
+        self.centralwidget = QtWidgets.QWidget(MainWindow)
+        self.centralwidget.setObjectName("centralwidget")
+        self.horizontalLayoutWidget = QtWidgets.QWidget(self.centralwidget)
+        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(10, 10, 1621, 1002))
+        self.horizontalLayoutWidget.setObjectName("horizontalLayoutWidget")
+        self.horizontalLayout = QtWidgets.QHBoxLayout(self.horizontalLayoutWidget)
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.tableWidget = QtWidgets.QTableWidget(self.horizontalLayoutWidget)
+        self.tableWidget.setMinimumSize(QtCore.QSize(1000, 1000))
+        self.tableWidget.setMaximumSize(QtCore.QSize(1000, 1000))
+        self.tableWidget.setObjectName("tableWidget")
+        self.tableWidget.setColumnCount(0)
+        self.tableWidget.setRowCount(0)
+        self.horizontalLayout.addWidget(self.tableWidget)
+        self.gridLayout = QtWidgets.QGridLayout()
+        self.gridLayout.setObjectName("gridLayout")
+        self.label_3 = QtWidgets.QLabel(self.horizontalLayoutWidget)
+        self.label_3.setMinimumSize(QtCore.QSize(200, 50))
+        self.label_3.setMaximumSize(QtCore.QSize(200, 50))
+        self.label_3.setObjectName("label_3")
+        self.gridLayout.addWidget(self.label_3, 3, 0, 1, 1)
+        self.lineEdit_2 = QtWidgets.QLineEdit(self.horizontalLayoutWidget)
+        self.lineEdit_2.setMinimumSize(QtCore.QSize(200, 50))
+        self.lineEdit_2.setMaximumSize(QtCore.QSize(200, 50))
+        self.lineEdit_2.setObjectName("lineEdit_2")
+        self.gridLayout.addWidget(self.lineEdit_2, 3, 1, 1, 1)
+        self.spinBox = QtWidgets.QSpinBox(self.horizontalLayoutWidget)
+        self.spinBox.setMinimumSize(QtCore.QSize(200, 50))
+        self.spinBox.setMaximumSize(QtCore.QSize(200, 50))
+        self.spinBox.setObjectName("spinBox")
+        self.gridLayout.addWidget(self.spinBox, 1, 1, 1, 1)
+        self.lineEdit = QtWidgets.QLineEdit(self.horizontalLayoutWidget)
+        self.lineEdit.setMinimumSize(QtCore.QSize(200, 50))
+        self.lineEdit.setMaximumSize(QtCore.QSize(200, 50))
+        self.lineEdit.setObjectName("lineEdit")
+        self.gridLayout.addWidget(self.lineEdit, 2, 1, 1, 1)
+        self.label_2 = QtWidgets.QLabel(self.horizontalLayoutWidget)
+        self.label_2.setMinimumSize(QtCore.QSize(200, 50))
+        self.label_2.setMaximumSize(QtCore.QSize(200, 50))
+        self.label_2.setObjectName("label_2")
+        self.gridLayout.addWidget(self.label_2, 2, 0, 1, 1)
+        self.label = QtWidgets.QLabel(self.horizontalLayoutWidget)
+        self.label.setMinimumSize(QtCore.QSize(200, 50))
+        self.label.setMaximumSize(QtCore.QSize(200, 50))
+        self.label.setObjectName("label")
+        self.gridLayout.addWidget(self.label, 1, 0, 1, 1)
+        self.label_4 = QtWidgets.QLabel(self.horizontalLayoutWidget)
+        self.label_4.setMinimumSize(QtCore.QSize(200, 50))
+        self.label_4.setMaximumSize(QtCore.QSize(200, 50))
+        self.label_4.setObjectName("label_4")
+        self.gridLayout.addWidget(self.label_4, 0, 0, 1, 1)
+        self.lineEdit_3 = QtWidgets.QLineEdit(self.horizontalLayoutWidget)
+        self.lineEdit_3.setMinimumSize(QtCore.QSize(200, 50))
+        self.lineEdit_3.setMaximumSize(QtCore.QSize(200, 50))
+        self.lineEdit_3.setObjectName("lineEdit_3")
+        self.gridLayout.addWidget(self.lineEdit_3, 0, 1, 1, 1)
+        self.horizontalLayout.addLayout(self.gridLayout)
+        MainWindow.setCentralWidget(self.centralwidget)
+        self.menubar = QtWidgets.QMenuBar(MainWindow)
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1691, 22))
+        self.menubar.setObjectName("menubar")
+        MainWindow.setMenuBar(self.menubar)
+        self.statusbar = QtWidgets.QStatusBar(MainWindow)
+        self.statusbar.setObjectName("statusbar")
+        MainWindow.setStatusBar(self.statusbar)
+
+        self.retranslateUi(MainWindow)
+        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+    def retranslateUi(self, MainWindow):
+        _translate = QtCore.QCoreApplication.translate
+        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        self.label_3.setText(_translate("MainWindow", "Destination MAC Address"))
+        self.label_2.setText(_translate("MainWindow", "Stream Id"))
+        self.label.setText(_translate("MainWindow", "Channel Count"))
+        self.label_4.setText(_translate("MainWindow", "JACK Client Name"))
+
