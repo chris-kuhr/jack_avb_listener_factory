@@ -111,7 +111,7 @@ async def readStdOut(process, cmd, timeout):
         print(cmd, "is not implemented yet...")
 
     elif cmd == "view": 
-        print(cmd, "is not implemented yet...")
+        result_avdeccctl_view(readLines)
 #--------------------------------------------------------------------------------------
 
 
@@ -134,6 +134,7 @@ async def command_avdeccctl_list(process):
     print("command_avdeccctl_list")
     writeStdin(process, "list\n")
     await readStdOut(process, "list", 2)
+#--------------------------------------------------------------------------------------
 
 def result_avdeccctl_list(readLines):
     print("result_avdeccctl_list")
@@ -144,8 +145,22 @@ def result_avdeccctl_list(readLines):
             foundList = True
         elif foundList:
             if "|" in line:
-                resultStr = line.split("\n")[0]
+                resultStr = line.split("\n")[0].split("|")
                 print(resultStr)
+#--------------------------------------------------------------------------------------
+
+async def command_avdeccctl_view(process):
+    print("command_avdeccctl_view")
+    writeStdin(process, "list\n")
+    await readStdOut(process, "list", 2)
+#--------------------------------------------------------------------------------------
+
+def result_avdeccctl_view(readLines):
+    print("result_avdeccctl_view")
+    foundList = False
+    print(cmd, "is not implemented yet...")
+    for line in readLines:
+        pass 
 #--------------------------------------------------------------------------------------
 
 async def run_command(*args, timeout=None):
