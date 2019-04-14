@@ -1,5 +1,12 @@
 import asyncio
 from asyncio.subprocess import PIPE, STDOUT
+import mmap
+import os
+import sys
+import time
+import posix_ipc
+import ipc_utils as utils
+from avdeccEntity import AVDECCEntity, serializeList2Str, deserializeStr2List
 
 avdecccmdline = "/opt/OpenAvnu/avdecc-lib/controller/app/cmdline/avdecccmdline"
 
@@ -14,7 +21,7 @@ def writeStdin(process, cmdStr):
     process.stdin.write(cmdStr.encode("utf-8"))
 #--------------------------------------------------------------------------------------
 
-async def readStdOut(process, cmd, timeout): 
+async def readStdOut(process, mapfile, semaphore, cmd, timeout): 
     #print("readStdOut")
     readLines = []
     while(True):
@@ -26,9 +33,9 @@ async def readStdOut(process, cmd, timeout):
         except asyncio.TimeoutError:
                 break
     if cmd == "netdev": 
-        await choose_avdeccctl_netdev(readLines, process)
+        await choose_avdeccctl_netdev(readLines, process, mapfile, semaphore)
     elif cmd == "list":       
-        result_avdeccctl_list(readLines)
+        result_avdeccctl_list(readLines, mapfile, semaphore)
     elif cmd == "acquire": 
         print(cmd, "is not implemented yet...")
 
@@ -111,34 +118,35 @@ async def readStdOut(process, cmd, timeout):
         print(cmd, "is not implemented yet...")
 
     elif cmd == "view": 
-        result_avdeccctl_view(readLines)
+        result_avdeccctl_view(readLines, mapfile, semaphore)
 #--------------------------------------------------------------------------------------
 
 
-async def prompt_avdeccctl_netdev(process):
+async def prompt_avdeccctl_netdev(process, mapfile, semaphore):
     print("prompt_avdeccctl_netdev")
-    await readStdOut(process, "netdev", 2)
+    await readStdOut(process, mapfile, semaphore, "netdev", 2)
 #--------------------------------------------------------------------------------------
 
-async def choose_avdeccctl_netdev(readLines, process):
+async def choose_avdeccctl_netdev(readLines, process, mapfile, semaphore):
     print("choose_avdeccctl_netdev")
     for line in readLines: 
         if line[0] == "2":
             resultStr = line.split("\n")[0]
             print(resultStr)
             writeStdin(process, "2\n")
-            await readStdOut(process, "", 2)
+            await readStdOut(process, mapfile, semaphore, "", 2)
 #--------------------------------------------------------------------------------------
 
-async def command_avdeccctl_list(process):
+async def command_avdeccctl_list(process, mapfile, semaphore):
     print("command_avdeccctl_list")
     writeStdin(process, "list\n")
-    await readStdOut(process, "list", 2)
+    await readStdOut(process, mapfile, semaphore, "list", 2)
 #--------------------------------------------------------------------------------------
 
-def result_avdeccctl_list(readLines):
+def result_avdeccctl_list(readLines, mapfile, semaphore):
     print("result_avdeccctl_list")
     foundList = False
+    entity_list = []
     for line in readLines: 
         if "----------------------------------------------------------------------------------------------------" in line:
             print("AVDECC devices online:")
@@ -146,16 +154,43 @@ def result_avdeccctl_list(readLines):
         elif foundList:
             if "|" in line:
                 resultStr = line.split("\n")[0].split("|")
-                print(resultStr)
+                #print(resultStr)
+                    
+                avdecc_entity = AVDECCEntity()
+
+                for idx, field in enumerate(resultStr):
+                    if idx == 0:
+                        ll = field.split(" ")
+                        for idx2, l in  enumerate(ll):
+                            if idx2 > 0 and l != "":
+                                avdecc_entity.idx = int(l)
+                    elif idx == 1:
+                        avdecc_entity.name = field.lstrip().rstrip()
+                    elif idx == 2:
+                        avdecc_entity.entityId = bytearray(field.lstrip().rstrip().split("x")[1].encode("utf8"))
+                    elif idx == 3:
+                        avdecc_entity.firmwareVersion = field.lstrip().rstrip()
+                    elif idx == 4:
+                        avdecc_entity.MACAddr = bytearray(field.lstrip().rstrip().encode("utf8"))
+
+                entity_list.append(avdecc_entity)
+                #print(entity_list[-1].encodeString())
+
+    serStr = serializeList2Str(entity_list)
+
+    semaphore.acquire()
+    utils.write_to_memory(mapfile, serStr)
+    semaphore.release()
+
 #--------------------------------------------------------------------------------------
 
-async def command_avdeccctl_view(process):
+async def command_avdeccctl_view(process, mapfile, semaphore):
     print("command_avdeccctl_view")
     writeStdin(process, "list\n")
-    await readStdOut(process, "list", 2)
+    await readStdOut(process, mapfile, semaphore, "list", 2)
 #--------------------------------------------------------------------------------------
 
-def result_avdeccctl_view(readLines):
+def result_avdeccctl_view(readLines, mapfile, semaphore):
     print("result_avdeccctl_view")
     foundList = False
     print(cmd, "is not implemented yet...")
@@ -169,11 +204,33 @@ async def run_command(*args, timeout=None):
     process = await asyncio.create_subprocess_exec(*args,
             stdout=PIPE, stdin=PIPE, stderr=STDOUT)
 
+    # open shared mem segment
+
+    params = utils.read_params()
+
+    # Mrs. Premise has already created the semaphore and shared memory.
+    # I just need to get handles to them.
+    memory = posix_ipc.SharedMemory(params["SHARED_MEMORY_NAME"])
+    semaphore = posix_ipc.Semaphore(params["SEMAPHORE_NAME"])
+
+    # MMap the shared memory
+    mapfile = mmap.mmap(memory.fd, memory.size)
+    semaphore.release()
+
+    # Once I've mmapped the file descriptor, I can close it without
+    # interfering with the mmap. This also demonstrates that os.close() is a
+    # perfectly legitimate alternative to the SharedMemory's close_fd() method.
+    os.close(memory.fd)
+
+
     # read line (sequence of bytes ending with b'\n') asynchronously
-    await prompt_avdeccctl_netdev(process)
-    await command_avdeccctl_list(process)
+    await prompt_avdeccctl_netdev(process, mapfile, semaphore)
+    await command_avdeccctl_list(process, mapfile, semaphore)
 
     process.kill() 
+    semaphore.release()
+    semaphore.close()
+    mapfile.close()
     return await process.wait() # wait for the child process to exit
 #--------------------------------------------------------------------------------------
 
