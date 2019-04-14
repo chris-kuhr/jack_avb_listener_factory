@@ -12,6 +12,7 @@ avdecccmdline_commands = ["list" # show all avdecc enabled devices
 def writeStdin(process, cmdStr):
     #print("writeStdin")
     process.stdin.write(cmdStr.encode("utf-8"))
+#--------------------------------------------------------------------------------------
 
 async def readStdOut(process, cmd, timeout): 
     #print("readStdOut")
@@ -28,10 +29,96 @@ async def readStdOut(process, cmd, timeout):
         await choose_avdeccctl_netdev(readLines, process)
     elif cmd == "list":       
         result_avdeccctl_list(readLines)
+    elif cmd == "acquire": 
+        print(cmd, "is not implemented yet...")
+
+    elif cmd == "audio_mappings": 
+        print(cmd, "is not implemented yet...")
+
+    elif cmd == "clr": 
+        print(cmd, "is not implemented yet...")
+
+    elif cmd == "connect": 
+        print(cmd, "is not implemented yet...")
+
+    elif cmd == "controller": 
+        print(cmd, "is not implemented yet...")
+
+    elif cmd == "disconnect": 
+        print(cmd, "is not implemented yet...")
+
+    elif cmd == "entity": 
+        print(cmd, "is not implemented yet...")
+
+    elif cmd == "get": 
+        print(cmd, "is not implemented yet...")
+
+    elif cmd == "help": 
+        print(cmd, "is not implemented yet...")
+
+    elif cmd == "identify": 
+        print(cmd, "is not implemented yet...")
+
+    elif cmd == "lock": 
+        print(cmd, "is not implemented yet...")
+
+    elif cmd == "log": 
+        print(cmd, "is not implemented yet...")
+
+    elif cmd == "param": 
+        print(cmd, "is not implemented yet...")
+
+    elif cmd == "path": 
+        print(cmd, "is not implemented yet...")
+
+    elif cmd == "q": 
+        print(cmd, "is not implemented yet...")
+
+    elif cmd == "quit": 
+        print(cmd, "is not implemented yet...")
+
+    elif cmd == "read": 
+        print(cmd, "is not implemented yet...")
+
+    elif cmd == "reboot": 
+        print(cmd, "is not implemented yet...")
+
+    elif cmd == "select": 
+        print(cmd, "is not implemented yet...")
+
+    elif cmd == "set": 
+        print(cmd, "is not implemented yet...")
+
+    elif cmd == "show": 
+        print(cmd, "is not implemented yet...")
+
+    elif cmd == "start": 
+        print(cmd, "is not implemented yet...")
+
+    elif cmd == "stop": 
+        print(cmd, "is not implemented yet...")
+
+    elif cmd == "unlog": 
+        print(cmd, "is not implemented yet...")
+
+    elif cmd == "unsolicited": 
+        print(cmd, "is not implemented yet...")
+
+    elif cmd == "upgrade": 
+        print(cmd, "is not implemented yet...")
+
+    elif cmd == "version": 
+        print(cmd, "is not implemented yet...")
+
+    elif cmd == "view": 
+        print(cmd, "is not implemented yet...")
+#--------------------------------------------------------------------------------------
+
 
 async def prompt_avdeccctl_netdev(process):
     print("prompt_avdeccctl_netdev")
     await readStdOut(process, "netdev", 2)
+#--------------------------------------------------------------------------------------
 
 async def choose_avdeccctl_netdev(readLines, process):
     print("choose_avdeccctl_netdev")
@@ -41,6 +128,7 @@ async def choose_avdeccctl_netdev(readLines, process):
             print(resultStr)
             writeStdin(process, "2\n")
             await readStdOut(process, "", 2)
+#--------------------------------------------------------------------------------------
 
 async def command_avdeccctl_list(process):
     print("command_avdeccctl_list")
@@ -58,6 +146,7 @@ def result_avdeccctl_list(readLines):
             if "|" in line:
                 resultStr = line.split("\n")[0]
                 print(resultStr)
+#--------------------------------------------------------------------------------------
 
 async def run_command(*args, timeout=None):
     # start child process
@@ -71,6 +160,7 @@ async def run_command(*args, timeout=None):
 
     process.kill() 
     return await process.wait() # wait for the child process to exit
+#--------------------------------------------------------------------------------------
 
 
 loop = asyncio.get_event_loop()
