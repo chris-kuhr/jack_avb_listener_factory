@@ -43,7 +43,7 @@ class JackAVBfactory(QtWidgets.QMainWindow):
         self.rows = 16     
         self.index = 0
         
-        names = ["one","two","three","four","five","six","seven","eight","nine","ten", "eleven","twelve", "thirteen","fourteen", "fivteen","sixteen"]
+        self.names = ["one","two","three","four","five","six","seven","eight","nine","ten", "eleven","twelve", "thirteen","fourteen", "fivteen","sixteen"]
         
         self.qt.tableWidget.setColumnCount(self.cols)
         self.qt.tableWidget.setRowCount(self.rows)
@@ -53,12 +53,13 @@ class JackAVBfactory(QtWidgets.QMainWindow):
                        
         for i in range(1,self.cols):                    # set col label
             item = QtWidgets.QTableWidgetItem()         
-            item.setText(names[i])
+            item.setText(self.names[i])
+            #item.itemClicked.connect(self.showEntityDetails(int))
             self.qt.tableWidget.setItem(0, i, item)                       
                        
         for j in range(1,self.rows):                    # set row label
             item = QtWidgets.QTableWidgetItem()
-            item.setText(names[j])
+            item.setText(self.names[j])
             self.qt.tableWidget.setItem(j, 0, item)
                        
         for j in range(1,self.rows):                    # populate table
@@ -68,7 +69,18 @@ class JackAVBfactory(QtWidgets.QMainWindow):
                 item.setText('O')
                 self.qt.tableWidget.setItem(j, i, item)
                         
+        self.qt.tableWidget.cellClicked.connect(self.showEntityDetails)
+        
+        
         self.show()        
+    #-------------------------------------------------------------------------------------------------------------------------
+    
+    def showEntityDetails(self, i, j):
+        print(i,j)    
+        if j != 0:
+            self.qt.lineEdit_4.setText(self.names[j])
+        elif i != 0:
+            self.qt.lineEdit_4.setText(self.names[i])
     #-------------------------------------------------------------------------------------------------------------------------
        
     def avdecccmdline_wrapper_thread(self):
