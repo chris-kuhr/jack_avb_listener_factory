@@ -2,9 +2,7 @@ import mmap
 import os
 import sys
 import time
-import hashlib
 import posix_ipc
-import json
 
 import ipc_utils as utils
 from avdeccEntity import AVDECCEntity, serializeList2Str, deserializeStr2List
