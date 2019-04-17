@@ -34,6 +34,9 @@ class JackAVBfactory(QtWidgets.QMainWindow):
         self.memory = posix_ipc.SharedMemory(self.params["SHARED_MEMORY_NAME"], posix_ipc.O_CREX, size=self.params["SHM_SIZE"])
         self.semaphore = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME"], posix_ipc.O_CREX)
 
+        # Create the message queue.
+        self.mq = posix_ipc.MessageQueue(self.params["MESSAGE_QUEUE_NAME"], posix_ipc.O_CREX)
+
         # MMap the shared memory
         self.mapfile = mmap.mmap(self.memory.fd, self.memory.size)
 
@@ -42,9 +45,9 @@ class JackAVBfactory(QtWidgets.QMainWindow):
         self.listeners = []
         self.talkers = []
         
-        '''
+        
         self.avdecccmdline_wrapper_thread()
-        '''
+        
              
         self.cols = 1
         self.rows = 1 
@@ -62,7 +65,16 @@ class JackAVBfactory(QtWidgets.QMainWindow):
         self.qt.tableWidget.cellClicked.connect(self.cellClickedSlot)
         self.qt.radioButton.toggled.connect(self.qt.setEndpointTypeTalker)
         self.qt.radioButton_2.toggled.connect(self.qt.setEndpointTypeListener)
-        self.qt.pushButton.clicked.connect(self.createJACKClient)        
+        self.qt.pushButton.clicked.connect(self.createJACKClient) 
+        self.mq.send("list")    
+        time.sleep(5)   
+        msg = ""
+        while(not "ack" in msg):
+            msg, _ = self.mq.receive()
+            msg = msg.decode()
+    
+        self.updateAVBEntityList()
+       
         self.show()        
     #-------------------------------------------------------------------------------------------------------------------------
     
@@ -76,7 +88,7 @@ class JackAVBfactory(QtWidgets.QMainWindow):
             self.endpointType = "t"
     #-------------------------------------------------------------------------------------------------------------------------
             
-    def addEntityToTable(self, entity, m, n):
+    def addEntityToTable(self, entity, m, n, endpointType):
 #        self.qt.textEdit.clear()
         self.qt.textEdit.append( "###########################################################" )
         self.qt.textEdit.append( "Creating JACK AVB %s: %s"%( entity.endpointType, entity.jackclient_name) )
@@ -85,11 +97,11 @@ class JackAVBfactory(QtWidgets.QMainWindow):
         self.qt.textEdit.append( "Stream Destination MAC: %s"%( entity.destMAC.decode("utf8") ) )
         self.qt.textEdit.append( "Channel Count: %d"%( entity.channelCount ) )
                 
-        if entity.endpointType == "l":  
+        if endpointType == "l":  
             self.rows += 1   
             self.qt.tableWidget.insertRow(m)   
             self.qt.tableWidget.setRowCount(m+1)
-        elif entity.endpointType == "t":
+        elif endpointType == "t":
             self.cols += 1
             self.qt.tableWidget.insertColumn(n) 
             self.qt.tableWidget.setColumnCount(n+1) 
@@ -99,11 +111,11 @@ class JackAVBfactory(QtWidgets.QMainWindow):
         item.setText(entity.jackclient_name + entity.name) 
         self.qt.tableWidget.setItem(m, n, item)
                           
-        if entity.endpointType == "l":  
+        if endpointType == "l":  
             for i in range(1,self.cols):        
                 self.qt.tableWidget.setItem(m, i, QtWidgets.QTableWidgetItem('O'))
                 self.qt.tableWidget.item(m, i).setBackground(defaultBGColor)
-        elif entity.endpointType == "t":
+        elif endpointType == "t":
             for i in range(1,self.rows):        
                 self.qt.tableWidget.setItem(i, n, QtWidgets.QTableWidgetItem('O'))
                 self.qt.tableWidget.item(i, n).setBackground(defaultBGColor)
@@ -125,11 +137,11 @@ class JackAVBfactory(QtWidgets.QMainWindow):
         if entity.endpointType == "l":    
             entity.idx = self.rows     
             self.listeners.append(entity)        
-            self.addEntityToTable(entity, entity.idx, 0)
+            self.addEntityToTable(entity, entity.idx, 0, "l")
         elif entity.endpointType == "t":    
             entity.idx = self.cols
             self.talkers.append(entity)
-            self.addEntityToTable(entity, 0, entity.idx)
+            self.addEntityToTable(entity, 0, entity.idx, "t")
     #-------------------------------------------------------------------------------------------------------------------------
         
     def updateAVBEntityList(self):
@@ -142,14 +154,15 @@ class JackAVBfactory(QtWidgets.QMainWindow):
         for device in serList:    
             entity = AVDECCEntity()  
             if entity.decodeString(device) > 0: # return values -1, 1
+                print(entity.endpointType)
                 if "t" in entity.endpointType:   
                     entity.idx = self.cols               
                     self.talkers.append(entity)
-                    self.addEntityToTable(entity, 0, self.cols)
+                    self.addEntityToTable(entity, 0, self.cols, "t")
                 if "l" in entity.endpointType:   
                     entity.idx = self.rows            
                     self.listeners.append(entity)
-                    self.addEntityToTable(entity, self.rows, 0)
+                    self.addEntityToTable(entity, self.rows, 0, "l")
             else:
                 break
     #-------------------------------------------------------------------------------------------------------------------------
@@ -197,7 +210,7 @@ class JackAVBfactory(QtWidgets.QMainWindow):
        
     def avdecccmdline_wrapper_thread(self):
         self.avdecc_thread = QtCore.QThread()
-        self.avdeccctl = AVDECC_Controller()
+        self.avdeccctl = AVDECC_Controller("enp1s0")
         self.avdeccctl.moveToThread(self.avdecc_thread)
         self.avdecc_thread.started.connect(self.avdeccctl.run_avdecccmdline_thread)
         self.avdecc_thread.start() 
@@ -208,17 +221,19 @@ class JackAVBfactory(QtWidgets.QMainWindow):
         quit_msg = "Are you sure you want to exit the program?"
         reply = QtWidgets.QMessageBox.question(self, 'Message', quit_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
     
-        if reply == QtWidgets.QMessageBox.Yes:          
-            # I could call memory.unlink() here but in order to demonstrate
-            # unlinking at the module level I'll do it that way.
+        if reply == QtWidgets.QMessageBox.Yes:  
+            self.mq.send("quit")
+            time.sleep(2)
+            self.avdecc_thread.wait()
+        
+            self.mapfile.close()
             posix_ipc.unlink_shared_memory(self.params["SHARED_MEMORY_NAME"])
 
-            self.semaphore.release()
+            self.mq.close()
+            posix_ipc.unlink_message_queue(params["MESSAGE_QUEUE_NAME"])
 
-            # I could also unlink the semaphore by calling
-            # posix_ipc.unlink_semaphore() but I'll do it this way instead.
+            self.semaphore.release()
             self.semaphore.unlink()
-            self.mapfile.close()
             event.accept()          
         else:
             event.ignore()

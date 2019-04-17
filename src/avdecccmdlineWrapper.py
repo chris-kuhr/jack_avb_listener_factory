@@ -12,10 +12,10 @@ from PyQt5.QtCore import QObject, QThread
 
 class AVDECC_Controller(QThread):
 
-    def __init__(self):
+    def __init__(self, avb_dev):
         super().__init__()
         self.avdecccmdline_cmd = "/opt/OpenAvnu/avdecc-lib/controller/app/cmdline/avdecccmdline"
-
+        self.avb_dev = avb_dev
 
         # open shared mem segment
 
@@ -25,6 +25,7 @@ class AVDECC_Controller(QThread):
         # I just need to get handles to them.
         self.memory = posix_ipc.SharedMemory(self.params["SHARED_MEMORY_NAME"])
         self.semaphore = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME"])
+        self.mq = posix_ipc.MessageQueue(self.params["MESSAGE_QUEUE_NAME"])
 
         # MMap the shared memory
         self.mapfile = mmap.mmap(self.memory.fd, self.memory.size)
@@ -149,28 +150,29 @@ class AVDECC_Controller(QThread):
     #--------------------------------------------------------------------------------------
 
 
-    async def prompt_avdeccctl_netdev():
+    async def prompt_avdeccctl_netdev(self):
         print("prompt_avdeccctl_netdev")
         await self.readStdOut("netdev", 2)
     #--------------------------------------------------------------------------------------
 
-    async def choose_avdeccctl_netdev(readLines, process, mapfile, semaphore):
+    async def choose_avdeccctl_netdev(self, readLines):
         print("choose_avdeccctl_netdev")
         for line in readLines: 
             if line[0] == "2":
+                print(self.avb_dev)
                 resultStr = line.split("\n")[0]
                 print(resultStr)
                 self.writeStdin("2\n")
                 await self.readStdOut("", 2)
     #--------------------------------------------------------------------------------------
 
-    async def command_avdeccctl_list():
+    async def command_avdeccctl_list(self):
         print("command_avdeccctl_list")
         self.writeStdin("list\n")
         await self.readStdOut("list", 2)
     #--------------------------------------------------------------------------------------
 
-    def result_avdeccctl_list(readLines):
+    def result_avdeccctl_list(self, readLines):
         print("result_avdeccctl_list")
         foundList = False
         entity_list = []
@@ -209,15 +211,17 @@ class AVDECC_Controller(QThread):
         utils.write_to_memory(self.mapfile, serStr)
         self.semaphore.release()
 
+        self.mq.send("ack")
+
     #--------------------------------------------------------------------------------------
 
-    async def command_avdeccctl_view():
+    async def command_avdeccctl_view(self):
         print("command_avdeccctl_view")
         self.writeStdin("list\n")
         await self.readStdOut("list", 2)
     #--------------------------------------------------------------------------------------
 
-    def result_avdeccctl_view(readLines):
+    def result_avdeccctl_view(self, readLines):
         print("result_avdeccctl_view")
         foundList = False
         print(cmd, "is not implemented yet...")
@@ -231,14 +235,31 @@ class AVDECC_Controller(QThread):
         # NOTE: universal_newlines parameter is not supported
         self.process = await asyncio.create_subprocess_exec(*args, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
         
-        # read line (sequence of bytes ending with b'\n') asynchronously
         await self.prompt_avdeccctl_netdev()
-        await self.command_avdeccctl_list()
+
+        while(True):
+            # read notification
+            # check mqueue
+            print("waiting for msg")
+            msg, _ = self.mq.receive()
+            msg = msg.decode()
+            if "list" in msg:
+                print("received list cmd")
+                await self.command_avdeccctl_list()
+            elif "connect" in msg:
+                pass
+            elif "view" in msg:
+                pass
+            elif "quit" in msg:
+                self.writeStdin("quit")
+                break
+           
 
         self.process.kill() 
         self.semaphore.release()
         self.semaphore.close()
         self.mapfile.close()
+        self.mq.close()
         return await self.process.wait() # wait for the child process to exit
     #--------------------------------------------------------------------------------------
 
