@@ -17,6 +17,9 @@ class AVDECC_Controller(QThread):
         self.avdecccmdline_cmd = "/opt/OpenAvnu/avdecc-lib/controller/app/cmdline/avdecccmdline"
         self.avb_dev = avb_dev
         self.sformats = []
+        self.endpointType = ""
+        self.streamId = ""
+        self.destMAC = ""
 
         # open shared mem segment
 
@@ -25,7 +28,9 @@ class AVDECC_Controller(QThread):
         # Mrs. Premise has already created the semaphore and shared memory.
         # I just need to get handles to them.
         self.memory = posix_ipc.SharedMemory(self.params["SHARED_MEMORY_NAME"])
-        self.semaphore = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME"])
+        self.semaphore = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME1"])
+        self.semaphore_mq_gui = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME2"])
+        self.semaphore_mq_wrapper = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME3"])
         self.mq = posix_ipc.MessageQueue(self.params["MESSAGE_QUEUE_NAME"])
 
         # MMap the shared memory
@@ -86,6 +91,12 @@ class AVDECC_Controller(QThread):
         elif cmd == "entity": 
             print(cmd, "is not implemented yet...")
 
+        elif cmd == "get stream_info input": 
+            await self.result_avdeccctl_get_stream_info(readLines, "l")
+
+        elif cmd == "get stream_info output": 
+            await self.result_avdeccctl_get_stream_info(readLines, "t")
+
         elif cmd == "get": 
             print(cmd, "is not implemented yet...")
 
@@ -143,6 +154,7 @@ class AVDECC_Controller(QThread):
 
         elif cmd == "version": 
             print(cmd, "is not implemented yet...")
+            
         elif cmd == "view": 
             await self.result_avdeccctl_view(readLines)
             
@@ -151,7 +163,7 @@ class AVDECC_Controller(QThread):
 
     async def prompt_avdeccctl_netdev(self):
         print("prompt_avdeccctl_netdev")
-        await self.readStdOut("netdev", 2)
+        await self.readStdOut("netdev", 0.5)
     #--------------------------------------------------------------------------------------
 
     async def choose_avdeccctl_netdev(self, readLines):
@@ -162,13 +174,13 @@ class AVDECC_Controller(QThread):
                 resultStr = line.split("\n")[0]
                 print(resultStr)
                 self.writeStdin("2\n")
-                await self.readStdOut("", 2)
+                await self.readStdOut("", 0.5)
     #--------------------------------------------------------------------------------------
 
     async def command_avdeccctl_list(self, cmd):
         print("command_avdeccctl_list")
         self.writeStdin("%s\n"%(cmd))
-        await self.readStdOut("list", 2)
+        await self.readStdOut("list", 0.5)
     #--------------------------------------------------------------------------------------
 
     async def result_avdeccctl_list(self, readLines):
@@ -203,35 +215,29 @@ class AVDECC_Controller(QThread):
                         elif idx == 4:
                             avdecc_entity.MACAddr = bytearray(field.lstrip().rstrip().encode("utf8"))
 
-
-                    print("select entity: select [e_s] [e_i] [c_i] \n Parameters:  e_s      : the End Station (index as int or Entity ID) \n e_i      : the entity index (type int) \n c_i      : the configuration index (type int)" )
-                                        
+                                       
                     await self.command_avdeccctl_select("select %s %d %d"%(entityId, 0, 0))
-                    # $ get stream_info STREAM_OUTPUT 0
-                    # AEM_DESC_STREAM_OUTPUT 1
-                    # AEM_DESC_STREAM_OUTPUT 2
-                    # AEM_DESC_STREAM_OUTPUT 3
-                    # AEM_DESC_STREAM_OUTPUT 4
-                    # AEM_DESC_STREAM_OUTPUT 5
-                    # AEM_DESC_STREAM_OUTPUT 6
-                    # AEM_DESC_STREAM_OUTPUT 7
-                    # AEM_DESC_STREAM_OUTPUT 8
-                    # Stream format: IEC...48KHZ_8CH
-                    # Stream ID: 0x00019f1c391e0000
-                    # Stream Destination MAC: 91e0f000fe80
-                    # Stream VLAN ID: 2
-
-
-                    print("view descriptor")
-                    await self.command_avdeccctl_view("view descriptor STREAM_INPUT 0")
-                    for sformat in self.sformats:
-                        if int(sformat[0].split("KHZ")[0]) == avdecc_entity.sampleRate_k:
-                            avdecc_entity.channelCountListener = int(sformat[1].split("CH")[0])
-                            
-                    await self.command_avdeccctl_view("view descriptor STREAM_OUTPUT 0")
-                    for sformat in self.sformats:
-                        if int(sformat[0].split("KHZ")[0]) == avdecc_entity.sampleRate_k:
-                            avdecc_entity.channelCountTalker = int(sformat[1].split("CH")[0])
+                    
+                    await self.command_avdeccctl_view("view descriptor ENTITY 0")
+                    
+                    print(self.endpointType)
+                    
+                    if "l" in self.endpointType:
+                        await self.command_avdeccctl_get_stream_info("get stream_info STREAM_INPUT 0")     
+                        for sformat in self.sformats:
+                            if int(sformat[0].split("KHZ")[0]) == avdecc_entity.sampleRate_k:
+                                avdecc_entity.channelCountListener = int(sformat[1].split("CH")[0]) 
+        
+                    if "t" in self.endpointType:
+                        await self.command_avdeccctl_get_stream_info("get stream_info STREAM_OUTPUT 0") 
+                        for sformat in self.sformats:
+                            if int(sformat[0].split("KHZ")[0]) == avdecc_entity.sampleRate_k:
+                                avdecc_entity.channelCountTalker = int(sformat[1].split("CH")[0]) 
+                        avdecc_entity.streamId = bytearray(self.streamId.encode("utf8"))
+                        print(avdecc_entity.streamId)
+                        avdecc_entity.destMAC = bytearray(self.destMAC.encode("utf8"))
+                        print(avdecc_entity.destMAC)
+                    
                     
                     entity_list.append(avdecc_entity)
                     #print(entity_list[-1].encodeString())
@@ -243,6 +249,43 @@ class AVDECC_Controller(QThread):
         self.semaphore.release()
 
 
+    #--------------------------------------------------------------------------------------
+
+    async def command_avdeccctl_get_stream_info(self, cmd):
+        print("command_avdeccctl_get_stream_info")
+        self.writeStdin("%s\n"%(cmd))
+        if "INPUT" in cmd:
+            await self.readStdOut("get stream_info input", 0.5)
+        if "OUTPUT" in cmd:
+            await self.readStdOut("get stream_info output", 0.5)
+    #--------------------------------------------------------------------------------------
+
+    async def result_avdeccctl_get_stream_info(self, readLines, endpointType):
+        print("result_avdeccctl_get_stream_info", endpointType)
+        self.sformats = []
+        self.streamId = ""
+        self.destMAC = ""
+        for line in readLines:
+            # Stream format: IEC...48KHZ_8CH
+            # Stream ID: 0x00019f1c391e0000
+            # Stream Destination MAC: 91e0f000fe80
+            # Stream VLAN ID: 2
+            
+            if "Stream format" in line:
+                try:
+                    sformat = line.split("\n")[0].split("IEC...")[1].split("_")
+                    print( sformat ) 
+                    self.sformats.append(sformat)  
+                except IndexError:
+                    self.sformats.append("2")  
+                    
+            if "t" in endpointType:    
+                if "Stream ID" in line:
+                    self.streamId = line.split("\n")[0].split(":")[1].lstrip().split("x")[1]
+                    print( self.streamId ) 
+                if "Stream Destination MAC" in line:
+                    self.destMAC = line.split("\n")[0].split(":")[1].lstrip()
+                    print( self.destMAC )            
     #--------------------------------------------------------------------------------------
 
     async def command_avdeccctl_select(self, cmd):
@@ -265,12 +308,12 @@ class AVDECC_Controller(QThread):
 
     async def result_avdeccctl_view(self, readLines):
         print("result_avdeccctl_view")
-        self.sformats = []
+        self.endpointType = ""
         for line in readLines:
-            if "stream_format" in line:
-                sformat = line.split("\n")[0].split("IEC...")[1].split("_")
-                print( sformat ) 
-                self.sformats.append(sformat)            
+            if "talker_stream_sources" in line and int(line.split("\n")[0].split(" ")[2]) > 0: 
+                self.endpointType += "t"  
+            if "listener_stream_sinks" in line and int(line.split("\n")[0].split(" ")[2]) > 0:
+                self.endpointType += "l"  
     #--------------------------------------------------------------------------------------
 
     async def run_command(self, *args, timeout=None):
@@ -287,8 +330,8 @@ class AVDECC_Controller(QThread):
             print("waiting for msg")
             msg, _ = self.mq.receive()
             msg = msg.decode()
-            if "list" in msg:
-                print("received list cmd")
+            if "discover" in msg:
+                print("received discover cmd")
                 await self.command_avdeccctl_list("list")
                 self.mq.send("ack")
             elif "connect" in msg:
@@ -302,7 +345,11 @@ class AVDECC_Controller(QThread):
 
         self.process.kill() 
         self.semaphore.release()
-        self.semaphore.close()
+        self.semaphore_mq_gui.release()
+        self.semaphore_mq_wrapper.release()
+        self.semaphore.unlink()
+        self.semaphore_mq_gui.unlink()
+        self.semaphore_mq_wrapper.unlink()
         self.mapfile.close()
         self.mq.close()
         return await self.process.wait() # wait for the child process to exit

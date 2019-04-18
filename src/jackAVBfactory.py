@@ -32,7 +32,9 @@ class JackAVBfactory(QtWidgets.QMainWindow):
 
         # Create the shared memory and the semaphore.
         self.memory = posix_ipc.SharedMemory(self.params["SHARED_MEMORY_NAME"], posix_ipc.O_CREX, size=self.params["SHM_SIZE"])
-        self.semaphore = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME"], posix_ipc.O_CREX)
+        self.semaphore = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME1"], posix_ipc.O_CREX)
+        self.semaphore_mq_gui = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME2"], posix_ipc.O_CREX)
+        self.semaphore_mq_wrapper = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME3"], posix_ipc.O_CREX)
 
         # Create the message queue.
         self.mq = posix_ipc.MessageQueue(self.params["MESSAGE_QUEUE_NAME"], posix_ipc.O_CREX)
@@ -69,7 +71,7 @@ class JackAVBfactory(QtWidgets.QMainWindow):
 
         self.show()      
 
-        self.mq.send("list")    
+        self.mq.send("discover")    
         time.sleep(5)   
         msg = ""
         while(not "ack" in msg):
@@ -323,7 +325,11 @@ class JackAVBfactory(QtWidgets.QMainWindow):
             posix_ipc.unlink_message_queue(self.params["MESSAGE_QUEUE_NAME"])
 
             self.semaphore.release()
+            self.semaphore_mq_qui.release()
+            self.semaphore_mq_wrapper.release()
             self.semaphore.unlink()
+            self.semaphore_mq_gui.unlink()
+            self.semaphore_mq_wrapper.unlink()
             event.accept()          
         else:
             event.ignore()
