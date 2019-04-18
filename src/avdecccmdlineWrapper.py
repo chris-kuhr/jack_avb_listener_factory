@@ -16,6 +16,7 @@ class AVDECC_Controller(QThread):
         super().__init__()
         self.avdecccmdline_cmd = "/opt/OpenAvnu/avdecc-lib/controller/app/cmdline/avdecccmdline"
         self.avb_dev = avb_dev
+        self.sformats = []
 
         # open shared mem segment
 
@@ -63,7 +64,7 @@ class AVDECC_Controller(QThread):
         if cmd == "netdev": 
             await self.choose_avdeccctl_netdev(readLines)
         elif cmd == "list":       
-            self.result_avdeccctl_list(readLines)
+            await self.result_avdeccctl_list(readLines)
         elif cmd == "acquire": 
             print(cmd, "is not implemented yet...")
 
@@ -117,10 +118,8 @@ class AVDECC_Controller(QThread):
 
         elif cmd == "reboot": 
             print(cmd, "is not implemented yet...")
-
         elif cmd == "select": 
-            print(cmd, "is not implemented yet...")
-
+            await self.result_avdeccctl_select(readLines)
         elif cmd == "set": 
             print(cmd, "is not implemented yet...")
 
@@ -144,9 +143,9 @@ class AVDECC_Controller(QThread):
 
         elif cmd == "version": 
             print(cmd, "is not implemented yet...")
-
         elif cmd == "view": 
-            self.result_avdeccctl_view(readLines)
+            await self.result_avdeccctl_view(readLines)
+            
     #--------------------------------------------------------------------------------------
 
 
@@ -166,13 +165,13 @@ class AVDECC_Controller(QThread):
                 await self.readStdOut("", 2)
     #--------------------------------------------------------------------------------------
 
-    async def command_avdeccctl_list(self):
+    async def command_avdeccctl_list(self, cmd):
         print("command_avdeccctl_list")
-        self.writeStdin("list\n")
+        self.writeStdin("%s\n"%(cmd))
         await self.readStdOut("list", 2)
     #--------------------------------------------------------------------------------------
 
-    def result_avdeccctl_list(self, readLines):
+    async def result_avdeccctl_list(self, readLines):
         print("result_avdeccctl_list")
         foundList = False
         entity_list = []
@@ -186,6 +185,7 @@ class AVDECC_Controller(QThread):
                     #print(resultStr)
                         
                     avdecc_entity = AVDECCEntity()
+                    entityId = ""
 
                     for idx, field in enumerate(resultStr):
                         if idx == 0:
@@ -196,12 +196,43 @@ class AVDECC_Controller(QThread):
                         elif idx == 1:
                             avdecc_entity.name = field.lstrip().rstrip()
                         elif idx == 2:
-                            avdecc_entity.entityId = bytearray(field.lstrip().rstrip().split("x")[1].encode("utf8"))
+                            entityId = field.lstrip().rstrip()
+                            avdecc_entity.entityId = bytearray(entityId.split("x")[1].encode("utf8"))
                         elif idx == 3:
                             avdecc_entity.firmwareVersion = field.lstrip().rstrip()
                         elif idx == 4:
                             avdecc_entity.MACAddr = bytearray(field.lstrip().rstrip().encode("utf8"))
 
+
+                    print("select entity: select [e_s] [e_i] [c_i] \n Parameters:  e_s      : the End Station (index as int or Entity ID) \n e_i      : the entity index (type int) \n c_i      : the configuration index (type int)" )
+                                        
+                    await self.command_avdeccctl_select("select %s %d %d"%(entityId, 0, 0))
+                    # $ get stream_info STREAM_OUTPUT 0
+                    # AEM_DESC_STREAM_OUTPUT 1
+                    # AEM_DESC_STREAM_OUTPUT 2
+                    # AEM_DESC_STREAM_OUTPUT 3
+                    # AEM_DESC_STREAM_OUTPUT 4
+                    # AEM_DESC_STREAM_OUTPUT 5
+                    # AEM_DESC_STREAM_OUTPUT 6
+                    # AEM_DESC_STREAM_OUTPUT 7
+                    # AEM_DESC_STREAM_OUTPUT 8
+                    # Stream format: IEC...48KHZ_8CH
+                    # Stream ID: 0x00019f1c391e0000
+                    # Stream Destination MAC: 91e0f000fe80
+                    # Stream VLAN ID: 2
+
+
+                    print("view descriptor")
+                    await self.command_avdeccctl_view("view descriptor STREAM_INPUT 0")
+                    for sformat in self.sformats:
+                        if int(sformat[0].split("KHZ")[0]) == avdecc_entity.sampleRate_k:
+                            avdecc_entity.channelCountListener = int(sformat[1].split("CH")[0])
+                            
+                    await self.command_avdeccctl_view("view descriptor STREAM_OUTPUT 0")
+                    for sformat in self.sformats:
+                        if int(sformat[0].split("KHZ")[0]) == avdecc_entity.sampleRate_k:
+                            avdecc_entity.channelCountTalker = int(sformat[1].split("CH")[0])
+                    
                     entity_list.append(avdecc_entity)
                     #print(entity_list[-1].encodeString())
 
@@ -211,22 +242,35 @@ class AVDECC_Controller(QThread):
         utils.write_to_memory(self.mapfile, serStr)
         self.semaphore.release()
 
-        self.mq.send("ack")
 
     #--------------------------------------------------------------------------------------
 
-    async def command_avdeccctl_view(self):
-        print("command_avdeccctl_view")
-        self.writeStdin("list\n")
-        await self.readStdOut("list", 2)
+    async def command_avdeccctl_select(self, cmd):
+        print("command_avdeccctl_select")
+        self.writeStdin("%s\n"%(cmd))
+        await self.readStdOut("select", 0.5)
     #--------------------------------------------------------------------------------------
 
-    def result_avdeccctl_view(self, readLines):
-        print("result_avdeccctl_view")
-        foundList = False
-        print(cmd, "is not implemented yet...")
+    async def result_avdeccctl_select(self, readLines):
+        print("result_avdeccctl_select")
         for line in readLines:
-            pass 
+            print(line.split("\n")[0])
+    #--------------------------------------------------------------------------------------
+
+    async def command_avdeccctl_view(self, cmd):
+        print("command_avdeccctl_view")
+        self.writeStdin("%s\n"%(cmd))
+        await self.readStdOut("view", 0.5)
+    #--------------------------------------------------------------------------------------
+
+    async def result_avdeccctl_view(self, readLines):
+        print("result_avdeccctl_view")
+        self.sformats = []
+        for line in readLines:
+            if "stream_format" in line:
+                sformat = line.split("\n")[0].split("IEC...")[1].split("_")
+                print( sformat ) 
+                self.sformats.append(sformat)            
     #--------------------------------------------------------------------------------------
 
     async def run_command(self, *args, timeout=None):
@@ -245,7 +289,8 @@ class AVDECC_Controller(QThread):
             msg = msg.decode()
             if "list" in msg:
                 print("received list cmd")
-                await self.command_avdeccctl_list()
+                await self.command_avdeccctl_list("list")
+                self.mq.send("ack")
             elif "connect" in msg:
                 pass
             elif "view" in msg:

@@ -7,14 +7,15 @@ class AVDECCEntity(object):
         self.firmwareVersion = "0"
         self.MACAddr = b'aabbccddeeff'
         self.endpointType = 'tl'
-        self.channelCount = 2
+        self.channelCountTalker = 2
+        self.channelCountListener = 2
         self.sampleRate_k = 48
         self.destMAC = b'aabbccddeeff'
         self.streamId = b'aabbcc0011ddeeff'
     #-------------------------------------------
 
     def encodeString(self):
-        return "%d;%s;%s;%s;%s;%s;%s;%d;%d;%s;%s;" %( self.idx, self.jackclient_name, self.name, self.entityId.decode("utf8"), self.firmwareVersion, self.MACAddr.decode("utf8"), self.endpointType, int(self.channelCount), int(self.sampleRate_k), self.destMAC.decode("utf8"), self.streamId.decode("utf8")) 
+        return "%d;%s;%s;%s;%s;%s;%s;%d;%d;%d;%s;%s;" %( self.idx, self.jackclient_name, self.name, self.entityId.decode("utf8"), self.firmwareVersion, self.MACAddr.decode("utf8"), self.endpointType, int(self.channelCountTalker), int(self.channelCountListener), int(self.sampleRate_k), self.destMAC.decode("utf8"), self.streamId.decode("utf8")) 
     #-------------------------------------------
 
 
@@ -30,10 +31,11 @@ class AVDECCEntity(object):
         self.firmwareVersion = propList[4]
         self.MACAddr = bytearray(propList[5].encode("utf8"))
         self.endpointType = propList[6]
-        self.channelCount = int(propList[7])
-        self.sampleRate_k = int(propList[8])
-        self.destMAC = bytearray(propList[9].encode("utf8"))
-        self.streamId = bytearray(propList[10].encode("utf8"))        
+        self.channelCountTalker = int(propList[7])
+        self.channelCountListener = int(propList[8])
+        self.sampleRate_k = int(propList[9])
+        self.destMAC = bytearray(propList[10].encode("utf8"))
+        self.streamId = bytearray(propList[11].encode("utf8"))        
         return 1
     #-------------------------------------------
 
