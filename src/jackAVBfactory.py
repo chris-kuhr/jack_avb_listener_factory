@@ -7,11 +7,9 @@ import sys, getopt
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 import asyncio
 
-from avdecccmdlineWrapper import AVDECC_Controller
 from QtController import QtController
 from WebsocketController import WebsocketController
-        
-        
+  
 def main(argv):
     ipaddress ="127.0.0.1"
     port = 5678
@@ -50,12 +48,22 @@ def main(argv):
         print("run forever")
         asyncio.get_event_loop().run_forever() 
               
-        wsCtl.semaphore.release()
-        wsCtl.semaphore.close()
+        
         wsCtl.mapfile.close()
+        posix_ipc.unlink_shared_memory(wsCtl.params["SHARED_MEMORY_NAME"])
+
+        wsCtl.mq.close()
+        posix_ipc.unlink_message_queue(wsCtl.params["MESSAGE_QUEUE_NAME"])
+
+        wsCtl.semaphore.release()
+        wsCtl.semaphore_mq_qui.release()
+        wsCtl.semaphore_mq_wrapper.release()
+        wsCtl.semaphore.unlink()
+        wsCtl.semaphore_mq_gui.unlink()
+        wsCtl.semaphore_mq_wrapper.unlink()
         sys.exit(0)
-#----------------------------------------------------------------------------------
-
-
+    #-------------------------------------------------------------------------------------------------------------------------
+#=======================================================================================================================
+ 
 if __name__ == '__main__':
    main(sys.argv[1:])

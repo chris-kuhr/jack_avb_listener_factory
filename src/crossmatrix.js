@@ -16,7 +16,8 @@ $(document).ready(function(){
         $('#'+endpointType.EPType+'_channel_count').text( endpointType.CCnt );
     }
 
-
+    // when clicked on empty row/col header: popup dialog to create new jack client
+    // 
 
 
 

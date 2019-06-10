@@ -21,30 +21,32 @@ class WebsocketController():
     def __init__(self, ipaddress='127.0.0.1', port=5678):
         print("setup websocket server")    
     
-        self.avdeccctl = AVDECC_Controller(cmd_path ="/home/christoph/source_code/github-kuhr/OpenAvnu.git/avdecc-lib/controller/app/cmdline/avdecccmdline")
-        #self.avdeccctl.start()
 
         self.params = utils.read_params()
 
         # Create the shared memory and the semaphore.
-        #self.memory = posix_ipc.SharedMemory(self.params["SHARED_MEMORY_NAME"])
-        #self.semaphore = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME"])
+        self.memory = posix_ipc.SharedMemory(self.params["SHARED_MEMORY_NAME"], posix_ipc.O_CREX, size=self.params["SHM_SIZE"])
+        self.semaphore = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME1"], posix_ipc.O_CREX)
+        self.semaphore_mq_gui = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME2"], posix_ipc.O_CREX)
+        self.semaphore_mq_wrapper = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME3"], posix_ipc.O_CREX)
 
-        # MMap the shared memory
-        #self.mapfile = mmap.mmap(self.memory.fd, self.memory.size)
-
-        #self.semaphore.release()
+        # Create the message queue.
+        self.mq = posix_ipc.MessageQueue(self.params["MESSAGE_QUEUE_NAME"], posix_ipc.O_CREX)
         
+        
+        self.avdeccctl = AVDECC_Controller("enp1s0", cmd_path ="/home/christoph/source_code/github-kuhr/OpenAvnu.git/avdecc-lib/controller/app/cmdline/avdecccmdline")
+        #self.avdeccctl.start()
         
         self.running = False
         
         self.listeners = []
         self.talkers = []
         
+        
         for i in range(0,4):        
             self.talkers.append( AVDECCEntity(i+1, "test%d"%(i+1),"talker") )
             self.listeners.append( AVDECCEntity(i+1, "test%d"%(i+1),"listener") )
-                   
+              
             
         print("start websocket server", self.avdeccctl)
         self.start_server = websockets.serve(self.websocketLoop, ipaddress, port)
@@ -66,6 +68,12 @@ class WebsocketController():
     async def websocketLoop(self, ws, path):
     
         self.running = True        
+        
+        for l in self.listeners:
+            await self.discovered(ws, l)
+            
+        for t in self.talkers:
+            await self.discovered(ws, t)
         
         while(self.running):
             '''
@@ -101,7 +109,15 @@ class WebsocketController():
                 '''
                 Talk to AVDECC Wrapper
                 '''
-                await self.discovered(ws)
+                
+                #self.mq.send("discover")    
+                #time.sleep(5)   
+                #msg = ""
+                #while(not "ack" in msg):
+                #    msg, _ = self.mq.receive()
+                #    msg = msg.decode()
+            
+                await self.discovered(ws, None)
     #-------------------------------------------------------------------------------------------------------------------------
   
   
@@ -167,9 +183,12 @@ class WebsocketController():
     #-------------------------------------------------------------------------------------------------------------------------
   
   
-    async def discovered(self, ws):   
-        self.talkers.append( AVDECCEntity(len(self.talkers)+1, "discovered%d"%(len(self.talkers)+1),"talker") )
-        await ws.send( json.dumps( {"discovered":[self.talkers[-1].getJSONprepObject()]} ) )
+    async def discovered(self, ws, endpointObj): 
+        if endpointObj is None:
+            self.talkers.append( AVDECCEntity(len(self.talkers)+1, "discovered%d"%(len(self.talkers)+1),"talker") )
+            await ws.send( json.dumps( {"discovered":[self.talkers[-1].getJSONprepObject()]} ) )
+        else:
+            await ws.send( json.dumps( {"discovered":[endpointObj.getJSONprepObject()]} ) )
     #-------------------------------------------------------------------------------------------------------------------------
         
     def updateAVBEntityList(self):
