@@ -95,7 +95,9 @@ class WebsocketController():
                     print(key, msg_dec[key])         
                     if key == "Quit":
                         self.running = False 
-                        break                        
+                        break          
+                    elif key == "newEndpoint":
+                        await self.newEndpoint(ws, key, msg_dec)              
                     elif key == "reqListener":
                         await self.reqListener(ws, key, msg_dec)
                     elif key == "reqTalker":
@@ -120,6 +122,19 @@ class WebsocketController():
                 await self.discovered(ws, None)
     #-------------------------------------------------------------------------------------------------------------------------
   
+    async def newEndpoint(self, ws, key, msg_dec):
+        newEndpoint = AVDECCEntity(0,"","")
+        if msg_dec[key][0]["EPType"] == "talker":
+            newEndpoint.setfromJSONObject(msg_dec[key][0], len(self.talkers)+1)
+            self.talkers.append(newEndpoint)
+        if msg_dec[key][0]["EPType"] == "listener":
+            newEndpoint.setfromJSONObject(msg_dec[key][0], len(self.listener)+1)
+            self.listener.append(newEndpoint)
+            
+
+        await self.discovered(ws, newEndpoint )
+    
+    #-------------------------------------------------------------------------------------------------------------------------  
   
     async def reqListener(self, ws, key, msg_dec):
         for listener in self.listeners:

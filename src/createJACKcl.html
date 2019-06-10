@@ -1,0 +1,50 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+	
+	<title>Create JACK Client</title>
+	
+</head>
+
+<body>
+    <form id="jack_client_parameters" action="client.html">
+        <table id="jack_client_parameters_tab" cellspacing="0" border="0">
+	        <colgroup span="2" width="85"></colgroup>
+	        <tr>
+		        <td height="17" width="250" align="left" valign=middle>Endpoint Name</td>
+		        <td height="17" width="250" align="left" valign=middle><input id="form_EPName" type="text" name="EPName" ></td>
+	        </tr>
+	        <tr>
+		        <td height="17" width="250" align="left" valign=middle>Endpoint Type</td>
+		        <td height="17" width="250" align="left" valign=middle>AVB Talker<input id="form_EPType" type="radio" name="EPType" value="talker">AVB Listener<input id="form_EPType" type="radio" name="EPType" value="listener"></td>
+	        </tr>
+	        <tr>
+		        <td height="17" width="250" align="left" valign=middle>JACK Client Name</td>
+		        <td height="17" width="250" align="left" valign=middle><input id="form_JACKName" type="JACKName"></td>
+	        </tr>
+	        <tr>
+		        <td height="17" width="250" align="left" valign=middle>MAC Address</td>
+		        <td height="17" width="250" align="left" valign=middle><input id="form_MACaddr" type="text"name="MACaddr" ></td>
+	        </tr>
+	        <tr>
+		        <td height="17" width="250" align="left" valign=middle>Stream ID</td>
+		        <td height="17" width="250" align="left" valign=middle><input id="form_SID" type="text"name="SID" ></td>
+	        </tr>
+	        <tr>
+		        <td height="17" width="250" align="left" valign=middle>Stream Destination MAC Adress</td>
+		        <td height="17" width="250" align="left" valign=middle><input id="form_DSTMAC" type="text"name="DSTMAC" ></td>
+	        </tr>
+	        <tr>
+		        <td height="17" width="250" align="left" valign=middle>Channel Count</td>
+		        <td height="17" width="250" align="left" valign=middle><input id="form_CCnt" type="text"name="CCnt" ></td>
+	        </tr>
+	        <tr>
+		        <td height="17" width="250" align="center" valign=middle bgcolor="#FF9999"><input name="JACKCL_BT" type="submit" value="Cancel"></td>
+		        <td height="17" width="250"  align="center" valign=middle bgcolor="#66FF66"><input name="JACKCL_BT" type="submit" value="Create"></td>
+	        </tr>
+        </table>
+    </form>
+</body>
+
+</html>

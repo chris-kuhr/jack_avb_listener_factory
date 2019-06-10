@@ -3,11 +3,11 @@
 # PERMISSIONS are in octal (note the leading 0).
 # SHM_SIZE is the size of the shared memory segment in bytes.
 
-SEMAPHORE_NAME1=/avdecc_gui_ctl100000000
-SEMAPHORE_NAME2=/avdecc_mq_gui100000000
-SEMAPHORE_NAME3=/avdecc_mq_wrapper100000000
-SHARED_MEMORY_NAME=/avdecc_gui100000000
-MESSAGE_QUEUE_NAME=/avdecc_gui_wrapper100000000
+SEMAPHORE_NAME1=/avdecc_gui_ctl10
+SEMAPHORE_NAME2=/avdecc_mq_gui10
+SEMAPHORE_NAME3=/avdecc_mq_wrapper10
+SHARED_MEMORY_NAME=/avdecc_gui10
+MESSAGE_QUEUE_NAME=/avdecc_gui_wrapper10
 PERMISSIONS=0600
 SHM_SIZE=4096
 

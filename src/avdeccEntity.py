@@ -23,10 +23,11 @@ class AVDECCEntity(object):
         return {"IDX":self.idx, "JACKName":self.jackclient_name, "EPName":self.name, "EID":self.entityId.decode("utf8"), "fwV":self.firmwareVersion, "MACaddr":self.MACAddr.decode("utf8"), "EPType":self.endpointType, "CCnt":self.channelCount, "SR":self.sampleRate_k, "DSTMAC":self.destMAC.decode("utf8"), "SID":self.streamId.decode("utf8")}
     #-------------------------------------------
     
-    def setfromJSONObject(self, jsonObj):
-        jsonDec = json.loads(jsonObj)
-        
-        self.idx = jsonDec["IDX"] 
+    def setfromJSONObject(self, jsonDec, idx=None):
+        if idx is None:
+            self.idx = jsonDec["IDX"] 
+        else:
+            self.idx = idx
         self.jackclient_name = jsonDec["JACKName"]
         self.name = jsonDec["EPName"]
         self.entityId = bytearray(jsonDec["EID"].encode("utf8"))

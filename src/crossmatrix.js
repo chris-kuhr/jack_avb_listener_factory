@@ -1,5 +1,8 @@
 $(document).ready(function(){
 
+    var ws = new WebSocket("ws://localhost:5678/");   
+    
+    
     function showDetails( endpointType ){
         $('#'+endpointType.EPType+'_ep_name').text( endpointType.EPName );
         
@@ -15,16 +18,8 @@ $(document).ready(function(){
         $('#'+endpointType.EPType+'_dst_stream_MACaddr').text( endpointType.DSTMAC );
         $('#'+endpointType.EPType+'_channel_count').text( endpointType.CCnt );
     }
-
-    // when clicked on empty row/col header: popup dialog to create new jack client
-    // 
-
-
-
-    var ws = new WebSocket("ws://localhost:5678/");
     
-        
-        
+    
     ws.onmessage = function ( event ) {
         json_obj = $.parseJSON( event.data );        
 	    console.log(json_obj)
@@ -87,9 +82,27 @@ $(document).ready(function(){
 	    
     };//onmessage
             
-    
-    
-    
+    $('#jack_client_parameters').submit( function( event ){
+        console.log("create JACK Client");
+        var sendObj = JSON.stringify({"newEndpoint":[
+                                            {"IDX":"-1", 
+                                            "JACKName":$('#form_JACKName').val(), 
+                                            "EPName":$('#form_EPName').val(), 
+                                            "EID":"0", 
+                                            "fwV":"0", 
+                                            "MACaddr":$('#form_MACaddr').val(), 
+                                            "EPType":$('#form_EPType').val(), 
+                                            "CCnt":$('#form_CCnt').val(), 
+                                            "SR":"48", 
+                                            "DSTMAC":$('#form_DSTMAC').val(), 
+                                            "SID":$('#form_SID').val()}
+                                            ]});
+        console.log(sendObj)
+        ws.send(sendObj);
+
+        event.preventDefault();
+
+    });
     
     // cross matrix logic
     $('#matrix tr td').click(function() {
@@ -100,13 +113,22 @@ $(document).ready(function(){
 		    alert("quitting");
             ws.send({"Quit":True});
 		}		
-		else if(rowIdx == 0 ||  colIdx == 0 && (rowIdx != colIdx) ){   		
-    		if(colIdx == 0){   		    
+		
+		// details
+		else if(rowIdx == 0 ||  colIdx == 0 && (rowIdx != colIdx) ){ 
+		
+		    if($(this).closest('td').text() == "_"){	
+		    }	    		    
+            if(colIdx == 0){   		    
                 ws.send(JSON.stringify({"reqListener":rowIdx}));
             } else if (rowIdx == 0){
                 ws.send(JSON.stringify({"reqTalker":colIdx}));
-            }     		
-		} else if(rowIdx > 0 ||  colIdx > 0){		
+            }     	
+            	
+		} 
+		
+		// connection
+		else if(rowIdx > 0 ||  colIdx > 0){		
 		    var listenerName = $('td:first', $(this).parents('tr')).text()
 		    var talkerName = $('#matrix').find('td').eq( colIdx ).text();		    
 		    var comStr = "listener "+listenerName+" Id: "+colIdx+" from talker "+talkerName+" Id: "+rowIdx
