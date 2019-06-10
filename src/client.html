@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Web Socket AES67 Controller</title>
+    
+    <script src="jquery-3.2.1.min.js"></script>
+    <script src="crossmatrix.js"></script>
+  </head>
+    <body>
+        <table id="matrix" border="1">
+			<tr>
+				<td  align="left">Endpoints</td>
+				<td  align="center">_</td>
+				<td  align="center">_</td>
+				<td  align="center">_</td>
+				<td  align="center">_</td>
+				<td  align="center">_</td>
+				<td  align="center">_</td>
+				<td  align="center">_</td>
+				<td  align="center">_</td>
+				<td  align="center">_</td>
+				<td  align="center">_</td>
+				<td  align="center">_</td>
+				<td  align="center">_</td>
+				<td  align="center">_</td>
+				<td  align="center">_</td>
+				<td  align="center">_</td>
+				<td  align="center">_</td>
+			</tr>
+			<tr>
+				<td align="center">_</td>
+				<td align="center">o</td>
+				<td align="center">o</td>
+				<td align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+			</tr>
+			<tr>
+				<td  align="center">_</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+			</tr>
+			<tr>
+				<td  align="center">_</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+			</tr>
+			<tr>
+				<td  align="center">_</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+			</tr>
+			<tr>
+				<td  align="center">_</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+			</tr>
+			<tr>
+				<td  align="center">_</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+			</tr>
+			<tr>
+				<td  align="center">_</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+			</tr>
+			<tr>
+				<td  align="center">_</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+			</tr>
+			<tr>
+				<td  align="center">_</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+			</tr>
+			<tr>
+				<td  align="center">_</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+			</tr>
+			<tr>
+				<td  align="center">_</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+			</tr>
+			<tr>
+				<td  align="center">_</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+			</tr>
+			<tr>
+				<td  align="center">_</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+			</tr>
+			<tr>
+				<td  align="center">_</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+			</tr>
+			<tr>
+				<td  align="center">_</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+			</tr>
+			<tr>
+				<td  align="center">_</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+				<td  align="center">o</td>
+			</tr>
+
+		</table>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+        <table id="endpoint_details" border="0" width=1000px>
+            <tr>
+		        <td  align="center">
+                    <table id="talker_details" border="1" style="float: left;">
+			            <tr>
+				            <td  align="center">Talker Details</td>
+			            </tr>
+			            <tr>
+				            <td  align="center">Endpoint Name</td>
+				            <td id="talker_ep_name">_</td>
+			            </tr>
+			            <tr>
+				            <td  align="center">JACK Client Name</td>
+				            <td id="talker_jack_client_name">_</td>
+			            </tr>
+			            <tr>
+				            <td  align="center">MAC Address</td>
+				            <td id="talker_MACaddr">_</td>
+			            </tr>
+			            <tr>
+				            <td  align="center">Stream ID</td>
+				            <td id="talker_SID">_</td>
+			            </tr>
+			            <tr>
+				            <td  align="center">Stream Destination MAC Adress</td>
+				            <td id="talker_dst_stream_MACaddr">_</td>
+			            </tr>
+			            <tr>
+				            <td  align="center">Channel Count</td>
+				            <td id="talker_channel_count">_</td>
+			            </tr>
+
+		            </table>
+		        </td>
+		        <td  align="center">
+                    <table id="listener_details" border="1" style="float: right;">
+			            <tr>
+				            <td  align="center">Listener Details</td>
+			            </tr>
+			            <tr>
+				            <td  align="center">Endpoint Name</td>
+				            <td id="listener_ep_name">_</td>
+			            </tr>
+			            <tr>
+				            <td  align="center">JACK Client Name</td>
+				            <td id="listener_jack_client_name">_</td>
+			            </tr>
+			            <tr>
+				            <td  align="center">MAC Address</td>
+				            <td id="listener_MACaddr">_</td>
+			            </tr>
+			            <tr>
+				            <td  align="center">Stream ID</td>
+				            <td id="listener_SID">_</td>
+			            </tr>
+			            <tr>
+				            <td  align="center">Stream Destination MAC Adress</td>
+				            <td id="listener_dst_stream_MACaddr">_</td>
+			            </tr>
+			            <tr>
+				            <td  align="center">Channel Count</td>
+				            <td id="listener_channel_count">_</td>
+			            </tr>
+
+		            </table>
+		        </td>
+			</tr>
+		</table>
+		
+    </body>
+</html>

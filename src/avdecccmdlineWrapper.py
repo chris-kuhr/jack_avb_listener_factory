@@ -4,17 +4,23 @@ import mmap
 import os
 import sys
 import time
+
+
+import threading
+
 import posix_ipc
 import ipc_utils as utils
+
 from avdeccEntity import AVDECCEntity, serializeList2Str, deserializeStr2List
-from PyQt5.QtCore import QObject, QThread
+from PyQt5.QtCore import QObject
 
 
-class AVDECC_Controller(QThread):
 
-    def __init__(self):
-        super().__init__()
-        self.avdecccmdline_cmd = "/opt/OpenAvnu/avdecc-lib/controller/app/cmdline/avdecccmdline"
+class AVDECC_Controller(threading.Thread):
+
+    def __init__(self, cmd_path="/opt/OpenAvnu/avdecc-lib/controller/app/cmdline/avdecccmdline"):
+        threading.Thread.__init__(self)
+        self.avdecccmdline_cmd = cmd_path
 
 
         # open shared mem segment
@@ -23,17 +29,17 @@ class AVDECC_Controller(QThread):
 
         # Mrs. Premise has already created the semaphore and shared memory.
         # I just need to get handles to them.
-        self.memory = posix_ipc.SharedMemory(self.params["SHARED_MEMORY_NAME"])
-        self.semaphore = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME"])
+        #self.memory = posix_ipc.SharedMemory(self.params["SHARED_MEMORY_NAME"], posix_ipc.O_CREX, size=self.params["SHM_SIZE"])
+        #self.semaphore = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME"], posix_ipc.O_CREX)
 
         # MMap the shared memory
-        self.mapfile = mmap.mmap(self.memory.fd, self.memory.size)
-        self.semaphore.release()
+        #self.mapfile = mmap.mmap(self.memory.fd, self.memory.size)
+        #self.semaphore.release()
 
         # Once I've mmapped the file descriptor, I can close it without
         # interfering with the mmap. This also demonstrates that os.close() is a
         # perfectly legitimate alternative to the SharedMemory's close_fd() method.
-        os.close(self.memory.fd)
+        #os.close(self.memory.fd)
         
         
         #avdecccmdline_commands = ["list" # show all avdecc enabled devices
@@ -149,12 +155,12 @@ class AVDECC_Controller(QThread):
     #--------------------------------------------------------------------------------------
 
 
-    async def prompt_avdeccctl_netdev():
+    async def prompt_avdeccctl_netdev(self):
         print("prompt_avdeccctl_netdev")
         await self.readStdOut("netdev", 2)
     #--------------------------------------------------------------------------------------
 
-    async def choose_avdeccctl_netdev(readLines, process, mapfile, semaphore):
+    async def choose_avdeccctl_netdev(self,readLines):
         print("choose_avdeccctl_netdev")
         for line in readLines: 
             if line[0] == "2":
@@ -164,16 +170,17 @@ class AVDECC_Controller(QThread):
                 await self.readStdOut("", 2)
     #--------------------------------------------------------------------------------------
 
-    async def command_avdeccctl_list():
+    async def command_avdeccctl_list(self):
         print("command_avdeccctl_list")
         self.writeStdin("list\n")
         await self.readStdOut("list", 2)
     #--------------------------------------------------------------------------------------
 
-    def result_avdeccctl_list(readLines):
+    def result_avdeccctl_list(self,readLines):
         print("result_avdeccctl_list")
         foundList = False
         entity_list = []
+        
         for line in readLines: 
             if "----------------------------------------------------------------------------------------------------" in line:
                 print("AVDECC devices online:")
@@ -203,6 +210,17 @@ class AVDECC_Controller(QThread):
                     entity_list.append(avdecc_entity)
                     #print(entity_list[-1].encodeString())
 
+
+
+
+
+        #
+        #
+        #   create json object
+        #
+        #
+
+
         serStr = serializeList2Str(entity_list)
 
         self.semaphore.acquire()
@@ -211,13 +229,13 @@ class AVDECC_Controller(QThread):
 
     #--------------------------------------------------------------------------------------
 
-    async def command_avdeccctl_view():
+    async def command_avdeccctl_view(self):
         print("command_avdeccctl_view")
         self.writeStdin("list\n")
         await self.readStdOut("list", 2)
     #--------------------------------------------------------------------------------------
 
-    def result_avdeccctl_view(readLines):
+    def result_avdeccctl_view(self, readLines):
         print("result_avdeccctl_view")
         foundList = False
         print(cmd, "is not implemented yet...")
@@ -234,15 +252,22 @@ class AVDECC_Controller(QThread):
         # read line (sequence of bytes ending with b'\n') asynchronously
         await self.prompt_avdeccctl_netdev()
         await self.command_avdeccctl_list()
-
+            
         self.process.kill() 
+    
+        # I could call memory.unlink() here but in order to demonstrate
+        # unlinking at the module level I'll do it that way.
+        posix_ipc.unlink_shared_memory(self.params["SHARED_MEMORY_NAME"])
+        
         self.semaphore.release()
         self.semaphore.close()
+        
+        self.semaphore.unlink()
         self.mapfile.close()
         return await self.process.wait() # wait for the child process to exit
     #--------------------------------------------------------------------------------------
 
-    def run_avdecccmdline_thread(self):    
+    def run(self):    
         loop = asyncio.new_event_loop();
         asyncio.set_event_loop(loop)
         #loop = asyncio.get_event_loop()
