@@ -1,6 +1,7 @@
 $(document).ready(function(){
 
-    var ws = new WebSocket("ws://localhost:5678/");   
+    //var ws = new WebSocket("ws://localhost:5678/"); 
+    var ws = new WebSocket("ws://192.168.2.220:5678/");  
     
     
     function showDetails( endpointType ){

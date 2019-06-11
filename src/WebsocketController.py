@@ -94,7 +94,15 @@ class WebsocketController():
                 for key in msg_dec:   
                     print(key, msg_dec[key])         
                     if key == "Quit":
-                        self.running = False 
+                        self.running = False
+                        
+                        '''
+                            Write config file on exit!!!
+                        '''
+                        
+                        
+                        
+                         
                         break          
                     elif key == "newEndpoint":
                         await self.newEndpoint(ws, key, msg_dec)              
