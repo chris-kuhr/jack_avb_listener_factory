@@ -41,7 +41,7 @@ def main(argv):
     
         sys.exit(qApp.exec_())  
     else:    
-        wsCtl = WebsocketController()
+        wsCtl = WebsocketController(ipaddress, port)
         
         print("run until complete")
         asyncio.get_event_loop().run_until_complete(wsCtl.start_server)
