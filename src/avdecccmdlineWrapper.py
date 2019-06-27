@@ -216,6 +216,8 @@ class AVDECC_Controller(threading.Thread):
         await self.readStdOut("list", 0.5)
     #--------------------------------------------------------------------------------------
 
+    def initAVDECCEntity(self, resString):
+
     async def result_avdeccctl_list(self,readLines):
         print("result_avdeccctl_list")
         foundList = False
@@ -251,29 +253,33 @@ class AVDECC_Controller(threading.Thread):
                             avdecc_entity.MACAddr = bytearray(field.lstrip().rstrip().encode("utf8"))
                     
                     await self.command_avdeccctl_select("select %s 0 0"%(entityId))
-                    await self.command_avdeccctl_view("view descriptor ENTITY 0")
-                    
-                    print(self.endpointType)
-                    
-                    if "listener" in self.endpointType:
-                        await self.command_avdeccctl_get_stream_info("get stream_info STREAM_INPUT 0")     
-                        for sformat in self.sformats:
-                            if int(sformat[0].split("KHZ")[0]) == avdecc_entity.sampleRate_k:
-                                avdecc_entity.channelCountListener = int(sformat[1].split("CH")[0]) 
-        
-                    if "talker" in self.endpointType:
-                        await self.command_avdeccctl_get_stream_info("get stream_info STREAM_OUTPUT 0") 
-                        for sformat in self.sformats:
-                            if int(sformat[0].split("KHZ")[0]) == avdecc_entity.sampleRate_k:
-                                avdecc_entity.channelCountTalker = int(sformat[1].split("CH")[0]) 
-                        avdecc_entity.streamId = bytearray(self.streamId.encode("utf8"))
-                        print(avdecc_entity.streamId)
-                        avdecc_entity.destMAC = bytearray(self.destMAC.encode("utf8"))
-                        print(avdecc_entity.destMAC)
                     
                     
-                    entity_list.append(avdecc_entity)
-                    print("AVDECC ctl: ", entity_list[-1].encodeString())
+                    numEndpoints = await self.command_avdeccctl_view("view descriptor ENTITY 0")
+                        
+                    
+                    print(numEndpoints, self.endpointType)
+                    
+                    while numEndpoints > 0:
+                        if "listener" in self.endpointType:
+                            await self.command_avdeccctl_get_stream_info("get stream_info STREAM_INPUT 0")     
+                            for sformat in self.sformats:
+                                if int(sformat[0].split("KHZ")[0]) == avdecc_entity.sampleRate_k:
+                                    avdecc_entity.channelCount = int(sformat[1].split("CH")[0]) 
+            
+                        elif "talker" in self.endpointType:
+                            await self.command_avdeccctl_get_stream_info("get stream_info STREAM_OUTPUT 0") 
+                            for sformat in self.sformats:
+                                if int(sformat[0].split("KHZ")[0]) == avdecc_entity.sampleRate_k:
+                                    avdecc_entity.channelCount = int(sformat[1].split("CH")[0]) 
+                            avdecc_entity.streamId = bytearray(self.streamId.encode("utf8"))
+                            print(avdecc_entity.streamId)
+                            avdecc_entity.destMAC = bytearray(self.destMAC.encode("utf8"))
+                            print(avdecc_entity.destMAC)
+                        
+                        
+                        entity_list.append(avdecc_entity)
+                        print("AVDECC ctl: ", entity_list[-1].encodeString())
 
 
 
@@ -353,11 +359,17 @@ class AVDECC_Controller(threading.Thread):
     async def result_avdeccctl_view(self, readLines):
         print("result_avdeccctl_view")
         self.endpointType = ""
+        res = []
         for line in readLines:
             if "talker_stream_sources" in line and int(line.split("\n")[0].split(" ")[2]) > 0: 
                 self.endpointType = "talker"  
+                res.append(self.endpointType)
             if "listener_stream_sinks" in line and int(line.split("\n")[0].split(" ")[2]) > 0:
                 self.endpointType = "listener"  
+                res.append(self.endpointType)
+                
+        return len(res)
+        
     #--------------------------------------------------------------------------------------
     def run(self):
         loop = asyncio.new_event_loop()
