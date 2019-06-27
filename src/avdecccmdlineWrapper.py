@@ -54,6 +54,7 @@ class AVDECC_Controller(threading.Thread):
         #                    "view descriptor STREAM_INPUT 0", # lookup channel count in stream descriptor
         #                    "view descriptor STREAM_OUTPUT 0"
         #                 ] 
+        print("AVDECC controller setup done.")
     #--------------------------------------------------------------------------------------
 
     def writeStdin(self, cmdStr):
@@ -332,10 +333,11 @@ class AVDECC_Controller(threading.Thread):
                 self.endpointType = "listener"  
     #--------------------------------------------------------------------------------------
 
-    async def run_command(self, *args, timeout=None):
-    
+    async def run(self):
+        print("run controller loop.")
         # start child process
         # NOTE: universal_newlines parameter is not supported
+        args = None
         self.process = await asyncio.create_subprocess_exec(*args, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
         
         await self.prompt_avdeccctl_netdev()
