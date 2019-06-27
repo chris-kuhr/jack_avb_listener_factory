@@ -95,7 +95,8 @@ class WebsocketController():
             msg_dec = msg.decode()
             
 
-        return    #-------------------------------------------------------------------------------------------------------------------------
+        return    
+    #-------------------------------------------------------------------------------------------------------------------------
 
     
     async def recvCatcher(self, ws):    
@@ -117,11 +118,14 @@ class WebsocketController():
         self.mq.send("discover")
         self.waitForMsg("ack")    
         self.updateAVBEntityList()
+        print("List lengths: ", len(self.listeners), len(self.talkers))
         
         for l in self.listeners:
+            print(l)
             await self.discovered(ws, l)
             
         for t in self.talkers:
+            print(t)
             await self.discovered(ws, t)
         
         while(self.running):
@@ -273,11 +277,12 @@ class WebsocketController():
         for device in serList: 
             print("ws_server: ", device) 
             entity = AVDECCEntity(0, "","")  
+            
             if entity.decodeString(device) > 0:
                 if "talker" in entity.endpointType: 
                     entity.idx = len(self.talkers)+1
                     self.talkers.append(entity)
-                if "listener" in entity.endpointType: 
+                elif "listener" in entity.endpointType: 
                     entity.idx = len(self.listeners)+1    
                     self.listeners.append(entity)
             else:
