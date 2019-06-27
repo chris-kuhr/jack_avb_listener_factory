@@ -33,6 +33,10 @@ class WebsocketController():
         # Create the message queue.
         self.mq = posix_ipc.MessageQueue(self.params["MESSAGE_QUEUE_NAME"], posix_ipc.O_CREX)
         
+        # MMap the shared memory
+        self.mapfile = mmap.mmap(self.memory.fd, self.memory.size)
+
+        self.semaphore.release()
         
         #self.avdeccctl = AVDECC_Controller("enp1s0", cmd_path ="/home/christoph/source_code/github-kuhr/OpenAvnu.git/avdecc-lib/controller/app/cmdline/avdecccmdline")
         self.avdeccctl = AVDECC_Controller(argv, "enp1s0", cmd_path ="/opt/OpenAvnu/avdecc-lib/controller/app/cmdline/avdecccmdline")
