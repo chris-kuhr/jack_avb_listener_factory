@@ -231,7 +231,7 @@ class AVDECC_Controller(threading.Thread):
                     resultStr = line.split("\n")[0].split("|")
                     print(resultStr)
                         
-                    avdecc_entity = AVDECCEntity()
+                    avdecc_entity = AVDECCEntity(0,"","")
                     entityId = ""
 
                     for idx, field in enumerate(resultStr):
