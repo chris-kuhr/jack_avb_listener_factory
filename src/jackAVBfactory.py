@@ -41,7 +41,7 @@ def main(argv):
     
         sys.exit(qApp.exec_())  
     else:    
-        wsCtl = WebsocketController(ipaddress, port)
+        wsCtl = WebsocketController(sys.argv, ipaddress, port)
         
         print("run until complete")
         asyncio.get_event_loop().run_until_complete(wsCtl.start_server)
@@ -67,3 +67,6 @@ def main(argv):
  
 if __name__ == '__main__':
    main(sys.argv[1:])
+   
+   
+   

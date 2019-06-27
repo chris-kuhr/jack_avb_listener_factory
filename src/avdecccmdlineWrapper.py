@@ -18,8 +18,9 @@ from PyQt5.QtCore import QObject
 
 class AVDECC_Controller(threading.Thread):
 
-    def __init__(self, avb_dev, cmd_path="/opt/OpenAvnu/avdecc-lib/controller/app/cmdline/avdecccmdline"):
+    def __init__(self, argv, avb_dev, cmd_path="/opt/OpenAvnu/avdecc-lib/controller/app/cmdline/avdecccmdline"):
         super().__init__()
+        self.argv = argv
         self.avdecccmdline_cmd = cmd_path
         self.avb_dev = avb_dev
         self.sformats = []
@@ -343,8 +344,7 @@ class AVDECC_Controller(threading.Thread):
         print("run controller loop.")
         # start child process
         # NOTE: universal_newlines parameter is not supported
-        args = None
-        self.process = await asyncio.create_subprocess_exec(*args, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
+        self.process = await asyncio.create_subprocess_exec(self.argv, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
         
         await self.prompt_avdeccctl_netdev()
 
