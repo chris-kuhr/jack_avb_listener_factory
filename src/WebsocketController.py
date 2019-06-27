@@ -43,6 +43,9 @@ class WebsocketController():
         self.listeners = []
         self.talkers = []
         
+        self.mq.send("discover")
+        self.waitForACK()    
+        self.updateAVBEntityList()
         
         for i in range(0,4):        
             self.talkers.append( AVDECCEntity(i+1, "test%d"%(i+1),"talker") )
@@ -53,7 +56,16 @@ class WebsocketController():
         self.start_server = websockets.serve(self.websocketLoop, ipaddress, port)
 
     #-------------------------------------------------------------------------------------------------------------------------
-  
+    def waitForACK(self):
+        msg_dec = "":
+        while "ack" not in msg_dec:
+            print("waiting for msg")
+            msg, _ = self.mq.receive()
+            msg_dec = msg.decode()
+
+        return    #-------------------------------------------------------------------------------------------------------------------------
+
+    
     async def recvCatcher(self, ws):    
         msg = None
         try:
@@ -120,15 +132,9 @@ class WebsocketController():
                 '''
                 Talk to AVDECC Wrapper
                 '''
-                
-                #self.mq.send("discover")    
-                #time.sleep(5)   
-                #msg = ""
-                #while(not "ack" in msg):
-                #    msg, _ = self.mq.receive()
-                #    msg = msg.decode()
-            
-                await self.discovered(ws, None)
+               
+                #await self.discovered(ws, None)
+                pass
     #-------------------------------------------------------------------------------------------------------------------------
   
     async def newEndpoint(self, ws, key, msg_dec):
