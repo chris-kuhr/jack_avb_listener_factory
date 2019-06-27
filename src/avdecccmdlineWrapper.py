@@ -216,8 +216,6 @@ class AVDECC_Controller(threading.Thread):
         await self.readStdOut("list", 0.5)
     #--------------------------------------------------------------------------------------
 
-    def initAVDECCEntity(self, resString):
-
     async def result_avdeccctl_list(self,readLines):
         print("result_avdeccctl_list")
         foundList = False
