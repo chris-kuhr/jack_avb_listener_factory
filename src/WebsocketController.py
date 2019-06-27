@@ -277,19 +277,21 @@ class WebsocketController():
         for device in serList: 
             print("ws_server: ", device) 
             entity = AVDECCEntity(0, "","")  
+            print("endpointtype", entity.endpointType)
             
             if entity.decodeString(device) > 0:
+                print("endpointtype", entity.endpointType)
                 if "talker" in entity.endpointType: 
                     entity.idx = len(self.talkers)+1
                     self.talkers.append(entity)
                 elif "listener" in entity.endpointType: 
                     entity.idx = len(self.listeners)+1    
                     self.listeners.append(entity)
-                print(entity.endpointType)
+                print("endpointtype", entity.endpointType)
             else:
                 break
             
-            print(entity.endpointType)
+            print("endpointtype", entity.endpointType)
     #-------------------------------------------------------------------------------------------------------------------------
      
     
