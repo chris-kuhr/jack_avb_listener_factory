@@ -260,7 +260,7 @@ class AVDECC_Controller(threading.Thread):
                     #avdecc_entity.endpointType = self.endpointType
                     print(numEndpoints)
                     
-                    for endpoint in  numEndpoints > 0:
+                    for endpoint in  numEndpoints:
                         if "listener" in endpoint:
                             await self.command_avdeccctl_get_stream_info("get stream_info STREAM_INPUT 0")     
                             for sformat in self.sformats:
