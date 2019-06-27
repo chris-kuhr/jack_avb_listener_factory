@@ -256,18 +256,18 @@ class AVDECC_Controller(threading.Thread):
                     
                     
                     numEndpoints = await self.command_avdeccctl_view("view descriptor ENTITY 0")
-                        
                     
-                    print(numEndpoints, self.endpointType)
+                    #avdecc_entity.endpointType = self.endpointType
+                    print(numEndpoints)
                     
-                    while numEndpoints > 0:
-                        if "listener" in self.endpointType:
+                    for endpoint in  numEndpoints > 0:
+                        if "listener" in endpoint:
                             await self.command_avdeccctl_get_stream_info("get stream_info STREAM_INPUT 0")     
                             for sformat in self.sformats:
                                 if int(sformat[0].split("KHZ")[0]) == avdecc_entity.sampleRate_k:
                                     avdecc_entity.channelCount = int(sformat[1].split("CH")[0]) 
             
-                        elif "talker" in self.endpointType:
+                        elif "talker" in endpoint:
                             await self.command_avdeccctl_get_stream_info("get stream_info STREAM_OUTPUT 0") 
                             for sformat in self.sformats:
                                 if int(sformat[0].split("KHZ")[0]) == avdecc_entity.sampleRate_k:
@@ -280,9 +280,6 @@ class AVDECC_Controller(threading.Thread):
                         
                         entity_list.append(avdecc_entity)
                         print("AVDECC ctl: ", entity_list[-1].encodeString())
-                        numEndpoints -= 1
-
-
 
 
 
@@ -369,7 +366,7 @@ class AVDECC_Controller(threading.Thread):
                 self.endpointType = "listener"  
                 res.append(self.endpointType)
                 
-        return len(res)
+        return res
         
     #--------------------------------------------------------------------------------------
     def run(self):
