@@ -247,7 +247,7 @@ class AVDECC_Controller(threading.Thread):
                     
                     
                     entity_list.append(avdecc_entity)
-                    #print(entity_list[-1].encodeString())
+                    print("AVDECC ctl: ", entity_list[-1].encodeString())
 
 
 
@@ -345,6 +345,7 @@ class AVDECC_Controller(threading.Thread):
         self.process = await asyncio.create_subprocess_exec(*args, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
         
         await self.prompt_avdeccctl_netdev()
+        self.mq.send("ready")
 
         while(True):
             # read notification

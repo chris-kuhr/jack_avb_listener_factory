@@ -43,23 +43,24 @@ class WebsocketController():
         self.listeners = []
         self.talkers = []
         
+        self.waitForMsg("ready")
         self.mq.send("discover")
-        self.waitForACK()    
+        self.waitForMsg("ack")    
         self.updateAVBEntityList()
         
-        for i in range(0,4):        
-            self.talkers.append( AVDECCEntity(i+1, "test%d"%(i+1),"talker") )
-            self.listeners.append( AVDECCEntity(i+1, "test%d"%(i+1),"listener") )
+        #for i in range(0,4):        
+        #    self.talkers.append( AVDECCEntity(i+1, "test%d"%(i+1),"talker") )
+        #    self.listeners.append( AVDECCEntity(i+1, "test%d"%(i+1),"listener") )
               
             
         print("start websocket server", self.avdeccctl)
         self.start_server = websockets.serve(self.websocketLoop, ipaddress, port)
 
     #-------------------------------------------------------------------------------------------------------------------------
-    def waitForACK(self):
+    def waitForMsg(self, recv_msg):
         msg_dec = ""
-        while "ack" not in msg_dec:
-            print("waiting for msg")
+        while recv_msg not in msg_dec:
+            print("waiting for %s"%recv_msg)
             msg, _ = self.mq.receive()
             msg_dec = msg.decode()
 
@@ -234,7 +235,8 @@ class WebsocketController():
         
         serList = deserializeStr2List(serStr)
 
-        for device in serList:    
+        for device in serList: 
+            print("ws_server: ", device)   
             entity = AVDECCEntity()  
             if entity.decodeString(device) > 0: # return values -1, 1
                 if "t" in entity.endpointType:               
