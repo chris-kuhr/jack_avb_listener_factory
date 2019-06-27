@@ -34,8 +34,9 @@ class WebsocketController():
         self.mq = posix_ipc.MessageQueue(self.params["MESSAGE_QUEUE_NAME"], posix_ipc.O_CREX)
         
         
-        self.avdeccctl = AVDECC_Controller("enp1s0", cmd_path ="/home/christoph/source_code/github-kuhr/OpenAvnu.git/avdecc-lib/controller/app/cmdline/avdecccmdline")
-        #self.avdeccctl.start()
+        #self.avdeccctl = AVDECC_Controller("enp1s0", cmd_path ="/home/christoph/source_code/github-kuhr/OpenAvnu.git/avdecc-lib/controller/app/cmdline/avdecccmdline")
+        self.avdeccctl = AVDECC_Controller("enp1s0", cmd_path ="opt/OpenAvnu/avdecc-lib/controller/app/cmdline/avdecccmdline")
+        self.avdeccctl.start()
         
         self.running = False
         
