@@ -255,7 +255,7 @@ class WebsocketController():
   
     async def discovered(self, ws, endpointObj): 
         if endpointObj is None:
-            self.talkers.append( AVDECCEntity(len(self.talkers)+1, "discovered%d"%(len(self.talkers)+1),"talker") )
+            #self.talkers.append( AVDECCEntity(len(self.talkers)+1, "discovered%d"%(len(self.talkers)+1),"talker") )
             await ws.send( json.dumps( {"discovered":[self.talkers[-1].getJSONprepObject()]} ) )
         else:
             await ws.send( json.dumps( {"discovered":[endpointObj.getJSONprepObject()]} ) )
@@ -285,8 +285,11 @@ class WebsocketController():
                 elif "listener" in entity.endpointType: 
                     entity.idx = len(self.listeners)+1    
                     self.listeners.append(entity)
+                print(entity.endpointType)
             else:
                 break
+            
+            print(entity.endpointType)
     #-------------------------------------------------------------------------------------------------------------------------
      
     
