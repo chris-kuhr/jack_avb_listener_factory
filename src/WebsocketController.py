@@ -35,7 +35,7 @@ class WebsocketController():
         
         
         #self.avdeccctl = AVDECC_Controller("enp1s0", cmd_path ="/home/christoph/source_code/github-kuhr/OpenAvnu.git/avdecc-lib/controller/app/cmdline/avdecccmdline")
-        self.avdeccctl = AVDECC_Controller(argv, "enp1s0", cmd_path ="opt/OpenAvnu/avdecc-lib/controller/app/cmdline/avdecccmdline")
+        self.avdeccctl = AVDECC_Controller(argv, "enp1s0", cmd_path ="/opt/OpenAvnu/avdecc-lib/controller/app/cmdline/avdecccmdline")
         self.avdeccctl.start()
         
         self.running = False
