@@ -332,8 +332,11 @@ class AVDECC_Controller(threading.Thread):
             if "listener_stream_sinks" in line and int(line.split("\n")[0].split(" ")[2]) > 0:
                 self.endpointType = "listener"  
     #--------------------------------------------------------------------------------------
+    def run(self):
+        await self.run_command()    #--------------------------------------------------------------------------------------
 
-    async def run(self):
+        
+    async def run_command(self):
         print("run controller loop.")
         # start child process
         # NOTE: universal_newlines parameter is not supported
