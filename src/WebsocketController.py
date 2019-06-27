@@ -26,9 +26,27 @@ class WebsocketController():
 
         # Create the shared memory and the semaphore.
         self.memory = posix_ipc.SharedMemory(self.params["SHARED_MEMORY_NAME"], posix_ipc.O_CREX, size=self.params["SHM_SIZE"])
-        self.semaphore = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME1"], posix_ipc.O_CREX)
-        self.semaphore_mq_gui = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME2"], posix_ipc.O_CREX)
-        self.semaphore_mq_wrapper = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME3"], posix_ipc.O_CREX)
+        
+        self.semaphore = 0
+        while self.semaphore == 0:
+            try:
+                self.semaphore = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME1"], posix_ipc.O_CREX)
+            except posix_ipc.ExistentialError:
+                pass
+            
+        self.semaphore_mq_gui = 0
+        while self.semaphore_mq_gui == 0:
+            try:
+                self.semaphore_mq_gui = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME2"], posix_ipc.O_CREX)  
+            except posix_ipc.ExistentialError:
+                pass  
+             
+        self.semaphore_mq_wrapper = 0
+        while self.semaphore_mq_wrapper == 0:
+            try:
+                self.semaphore_mq_wrapper = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME3"])
+            except posix_ipc.ExistentialError:
+                pass
 
         # Create the message queue.
         self.mq = posix_ipc.MessageQueue(self.params["MESSAGE_QUEUE_NAME"], posix_ipc.O_CREX)
@@ -37,8 +55,9 @@ class WebsocketController():
         self.mapfile = mmap.mmap(self.memory.fd, self.memory.size)
 
         self.semaphore.release()
+        self.semaphore_mq_gui.release()
+        self.semaphore_mq_wrapper.release()
         
-        self.waitForMsg("ready")
         
         
         #self.avdeccctl = AVDECC_Controller("enp1s0", cmd_path ="/home/christoph/source_code/github-kuhr/OpenAvnu.git/avdecc-lib/controller/app/cmdline/avdecccmdline")

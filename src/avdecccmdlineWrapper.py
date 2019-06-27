@@ -35,9 +35,28 @@ class AVDECC_Controller(threading.Thread):
         # Mrs. Premise has already created the semaphore and shared memory.
         # I just need to get handles to them.
         self.memory = posix_ipc.SharedMemory(self.params["SHARED_MEMORY_NAME"])
-        self.semaphore = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME1"])
-        self.semaphore_mq_gui = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME2"])
-        self.semaphore_mq_wrapper = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME3"])
+        
+        self.semaphore = 0
+        while self.semaphore == 0:
+            try:
+                self.semaphore = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME1"])
+            except posix_ipc.ExistentialError:
+                pass
+            
+        self.semaphore_mq_gui = 0
+        while self.semaphore_mq_gui == 0:
+            try:
+                self.semaphore_mq_gui = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME2"])  
+            except posix_ipc.ExistentialError:
+                pass  
+             
+        self.semaphore_mq_wrapper = 0
+        while self.semaphore_mq_wrapper == 0:
+            try:
+                self.semaphore_mq_wrapper = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME3"], posix_ipc.O_CREX)
+            except posix_ipc.ExistentialError:
+                pass
+        
         self.mq = posix_ipc.MessageQueue(self.params["MESSAGE_QUEUE_NAME"])
 
         # MMap the shared memory
