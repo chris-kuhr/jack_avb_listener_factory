@@ -222,13 +222,14 @@ class AVDECC_Controller(threading.Thread):
         entity_list = []
         
         for line in readLines: 
+            print(line)
             if "----------------------------------------------------------------------------------------------------" in line:
                 print("AVDECC devices online:")
                 foundList = True
             elif foundList:
                 if "|" in line:
                     resultStr = line.split("\n")[0].split("|")
-                    #print(resultStr)
+                    print(resultStr)
                         
                     avdecc_entity = AVDECCEntity()
                     entityId = ""
