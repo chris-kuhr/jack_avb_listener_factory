@@ -47,10 +47,6 @@ class WebsocketController():
         self.listeners = []
         self.talkers = []
         
-        self.waitForMsg("ready")
-        self.mq.send("discover")
-        self.waitForMsg("ack")    
-        self.updateAVBEntityList()
         
         #for i in range(0,4):        
         #    self.talkers.append( AVDECCEntity(i+1, "test%d"%(i+1),"talker") )
@@ -86,6 +82,11 @@ class WebsocketController():
     async def websocketLoop(self, ws, path):
     
         self.running = True        
+        
+        self.waitForMsg("ready")
+        self.mq.send("discover")
+        self.waitForMsg("ack")    
+        self.updateAVBEntityList()
         
         for l in self.listeners:
             await self.discovered(ws, l)
@@ -249,6 +250,7 @@ class WebsocketController():
                 if "listener" in entity.endpointType: 
                     entity.idx = len(self.listeners)+1    
                     self.listeners.append(entity)
+                await self.discovered(ws, entity )
             else:
                 break
     #-------------------------------------------------------------------------------------------------------------------------
