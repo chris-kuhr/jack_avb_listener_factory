@@ -41,7 +41,7 @@ class AVDECCEntity(object):
     #-------------------------------------------
 
     def encodeString(self):
-        return "%d;%s;%s;%s;%s;%s;%s;%d;%d;%d;%s;%s;" %( self.idx, self.jackclient_name, self.name, self.entityId.decode("utf8"), self.firmwareVersion, self.MACAddr.decode("utf8"), self.endpointType, int(self.channelCount), int(self.sampleRate_k), self.destMAC.decode("utf8"), self.streamId.decode("utf8")) 
+        return "%d;%s;%s;%s;%s;%s;%s;%d;%d;%s;%s;" %( self.idx, self.jackclient_name, self.name, self.entityId.decode("utf8"), self.firmwareVersion, self.MACAddr.decode("utf8"), self.endpointType, int(self.channelCount), int(self.sampleRate_k), self.destMAC.decode("utf8"), self.streamId.decode("utf8")) 
     #-------------------------------------------
 
 
