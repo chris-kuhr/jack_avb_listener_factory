@@ -344,7 +344,7 @@ class AVDECC_Controller(threading.Thread):
         print("run controller loop.")
         # start child process
         # NOTE: universal_newlines parameter is not supported
-        self.process = await asyncio.create_subprocess_exec(self.argv, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
+        self.process = await asyncio.create_subprocess_exec(" ", stdout=PIPE, stdin=PIPE, stderr=STDOUT)
         
         await self.prompt_avdeccctl_netdev()
 
