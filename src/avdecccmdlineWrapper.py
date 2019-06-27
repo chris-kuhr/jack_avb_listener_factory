@@ -333,7 +333,10 @@ class AVDECC_Controller(threading.Thread):
                 self.endpointType = "listener"  
     #--------------------------------------------------------------------------------------
     def run(self):
-        await self.run_command()    #--------------------------------------------------------------------------------------
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        result = loop.run_until_complete(self.run_command())
+ #--------------------------------------------------------------------------------------
 
         
     async def run_command(self):
