@@ -250,7 +250,6 @@ class WebsocketController():
                 if "listener" in entity.endpointType: 
                     entity.idx = len(self.listeners)+1    
                     self.listeners.append(entity)
-                await self.discovered(ws, entity )
             else:
                 break
     #-------------------------------------------------------------------------------------------------------------------------
