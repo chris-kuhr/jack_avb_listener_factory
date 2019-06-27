@@ -53,6 +53,8 @@ class WebsocketController():
         #    self.listeners.append( AVDECCEntity(i+1, "test%d"%(i+1),"listener") )
               
             
+        self.waitForMsg("ready")
+        
         print("start websocket server", self.avdeccctl)
         self.start_server = websockets.serve(self.websocketLoop, ipaddress, port)
 
@@ -83,7 +85,6 @@ class WebsocketController():
     
         self.running = True        
         
-        self.waitForMsg("ready")
         self.mq.send("discover")
         self.waitForMsg("ack")    
         self.updateAVBEntityList()
