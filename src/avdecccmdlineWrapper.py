@@ -346,7 +346,8 @@ class AVDECC_Controller(threading.Thread):
         
         await self.prompt_avdeccctl_netdev()
         self.mq.send("ready")
-
+        print("have sent ready")
+        
         while(True):
             # read notification
             # check mqueue

@@ -38,6 +38,9 @@ class WebsocketController():
 
         self.semaphore.release()
         
+        self.waitForMsg("ready")
+        
+        
         #self.avdeccctl = AVDECC_Controller("enp1s0", cmd_path ="/home/christoph/source_code/github-kuhr/OpenAvnu.git/avdecc-lib/controller/app/cmdline/avdecccmdline")
         self.avdeccctl = AVDECC_Controller(argv, "enp1s0", cmd_path ="/opt/OpenAvnu/avdecc-lib/controller/app/cmdline/avdecccmdline")
         self.avdeccctl.start()
@@ -53,7 +56,6 @@ class WebsocketController():
         #    self.listeners.append( AVDECCEntity(i+1, "test%d"%(i+1),"listener") )
               
             
-        self.waitForMsg("ready")
         
         print("start websocket server", self.avdeccctl)
         self.start_server = websockets.serve(self.websocketLoop, ipaddress, port)
@@ -65,6 +67,7 @@ class WebsocketController():
             print("waiting for %s"%recv_msg)
             msg, _ = self.mq.receive()
             msg_dec = msg.decode()
+            
 
         return    #-------------------------------------------------------------------------------------------------------------------------
 
