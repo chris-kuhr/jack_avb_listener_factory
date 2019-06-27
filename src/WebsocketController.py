@@ -115,6 +115,9 @@ class WebsocketController():
     
         self.running = True        
         
+        self.listeners = []
+        self.talkers = []
+        
         self.mq.send("discover")
         self.waitForMsg("ack")    
         self.updateAVBEntityList()
