@@ -24,8 +24,16 @@ class WebsocketController():
 
         self.params = utils.read_params()
 
+
+        # Create the message queue.
+        self.mq = posix_ipc.MessageQueue(self.params["MESSAGE_QUEUE_NAME"], posix_ipc.O_CREX)
+        
+        
         # Create the shared memory and the semaphore.
         self.memory = posix_ipc.SharedMemory(self.params["SHARED_MEMORY_NAME"], posix_ipc.O_CREX, size=self.params["SHM_SIZE"])
+        # MMap the shared memory
+        self.mapfile = mmap.mmap(self.memory.fd, self.memory.size)
+        
         
         self.semaphore = 0
         while self.semaphore == 0:
@@ -33,6 +41,8 @@ class WebsocketController():
                 self.semaphore = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME1"], posix_ipc.O_CREX)
             except posix_ipc.ExistentialError:
                 pass
+        self.semaphore.release()
+            
             
         self.semaphore_mq_gui = 0
         while self.semaphore_mq_gui == 0:
@@ -40,23 +50,12 @@ class WebsocketController():
                 self.semaphore_mq_gui = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME2"], posix_ipc.O_CREX)  
             except posix_ipc.ExistentialError:
                 pass  
-             
-        self.semaphore_mq_wrapper = 0
-        while self.semaphore_mq_wrapper == 0:
-            try:
-                self.semaphore_mq_wrapper = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME3"])
-            except posix_ipc.ExistentialError:
-                pass
-
-        # Create the message queue.
-        self.mq = posix_ipc.MessageQueue(self.params["MESSAGE_QUEUE_NAME"], posix_ipc.O_CREX)
-        
-        # MMap the shared memory
-        self.mapfile = mmap.mmap(self.memory.fd, self.memory.size)
-
-        self.semaphore.release()
         self.semaphore_mq_gui.release()
-        self.semaphore_mq_wrapper.release()
+             
+             
+
+        
+
         
         
         
@@ -64,6 +63,14 @@ class WebsocketController():
         self.avdeccctl = AVDECC_Controller(argv, "enp1s0", cmd_path ="/opt/OpenAvnu/avdecc-lib/controller/app/cmdline/avdecccmdline")
         self.avdeccctl.start()
         
+        self.semaphore_mq_wrapper = 0
+        while self.semaphore_mq_wrapper == 0:
+            try:
+                self.semaphore_mq_wrapper = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME3"])
+            except posix_ipc.ExistentialError:
+                pass
+        self.semaphore_mq_wrapper.release()
+                
         self.running = False
         
         self.listeners = []
