@@ -230,7 +230,7 @@ class WebsocketController():
         self.semaphore.acquire()
         serStr = utils.read_from_memory(self.mapfile)
         self.semaphore.release()
-
+        
         #
         #
         #   create List from JSON object
@@ -240,12 +240,14 @@ class WebsocketController():
         serList = deserializeStr2List(serStr)
 
         for device in serList: 
-            print("ws_server: ", device)   
-            entity = AVDECCEntity()  
-            if entity.decodeString(device) > 0: # return values -1, 1
-                if "t" in entity.endpointType:               
+            print("ws_server: ", device) 
+            entity = AVDECCEntity(0, "","")  
+            if entity.decodeString(device) > 0:
+                if "talker" in entity.endpointType: 
+                    entity.idx = len(self.talkers)+1
                     self.talkers.append(entity)
-                if "l" in entity.endpointType:     
+                if "listener" in entity.endpointType: 
+                    entity.idx = len(self.listeners)+1    
                     self.listeners.append(entity)
             else:
                 break
