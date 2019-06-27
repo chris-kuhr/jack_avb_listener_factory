@@ -57,7 +57,7 @@ class WebsocketController():
 
     #-------------------------------------------------------------------------------------------------------------------------
     def waitForACK(self):
-        msg_dec = "":
+        msg_dec = ""
         while "ack" not in msg_dec:
             print("waiting for msg")
             msg, _ = self.mq.receive()
