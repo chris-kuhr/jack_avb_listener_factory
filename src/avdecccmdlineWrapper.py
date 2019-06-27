@@ -336,15 +336,13 @@ class AVDECC_Controller(threading.Thread):
     def run(self):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        result = loop.run_until_complete(self.run_command())
+        result = loop.run_until_complete(self.run_command(self.avdecccmdline_cmd))
  #--------------------------------------------------------------------------------------
 
         
-    async def run_command(self):
+    async def run_command(self, *args, timeout=None):
         print("run controller loop.")
-        # start child process
-        # NOTE: universal_newlines parameter is not supported
-        self.process = await asyncio.create_subprocess_exec(" ", stdout=PIPE, stdin=PIPE, stderr=STDOUT)
+        self.process = await asyncio.create_subprocess_exec(*args, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
         
         await self.prompt_avdeccctl_netdev()
 
