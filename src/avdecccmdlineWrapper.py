@@ -91,6 +91,7 @@ class AVDECC_Controller(threading.Thread):
     async def readStdOut(self, cmd, timeout): 
         #print("readStdOut")
         readLines = []
+        result = None
         while(True):
             line = ''
             try:
