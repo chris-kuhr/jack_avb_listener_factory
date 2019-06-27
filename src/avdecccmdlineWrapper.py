@@ -189,14 +189,15 @@ class AVDECC_Controller(threading.Thread):
             print(cmd, "is not implemented yet...")
             
         elif cmd == "view": 
-            await self.result_avdeccctl_view(readLines)
-            
+            result = await self.result_avdeccctl_view(readLines)
+        
+        return result
     #--------------------------------------------------------------------------------------
 
 
     async def prompt_avdeccctl_netdev(self):
         print("prompt_avdeccctl_netdev")
-        await self.readStdOut("netdev", 0.5)
+        return await self.readStdOut("netdev", 0.5)
     #--------------------------------------------------------------------------------------
 
     async def choose_avdeccctl_netdev(self, readLines):
@@ -207,13 +208,13 @@ class AVDECC_Controller(threading.Thread):
                 resultStr = line.split("\n")[0]
                 print(resultStr)
                 self.writeStdin("2\n")
-                await self.readStdOut("", 0.5)
+                return await self.readStdOut("", 0.5)
     #--------------------------------------------------------------------------------------
     
     async def command_avdeccctl_list(self, cmd):
         print("command_avdeccctl_list")
         self.writeStdin("%s\n"%(cmd))
-        await self.readStdOut("list", 0.5)
+        return await self.readStdOut("list", 0.5)
     #--------------------------------------------------------------------------------------
 
     async def result_avdeccctl_list(self,readLines):
@@ -278,6 +279,7 @@ class AVDECC_Controller(threading.Thread):
                         
                         entity_list.append(avdecc_entity)
                         print("AVDECC ctl: ", entity_list[-1].encodeString())
+                        numEndpoints -= 1
 
 
 
@@ -303,9 +305,9 @@ class AVDECC_Controller(threading.Thread):
         print("command_avdeccctl_get_stream_info")
         self.writeStdin("%s\n"%(cmd))
         if "INPUT" in cmd:
-            await self.readStdOut("get stream_info input", 0.5)
-        if "OUTPUT" in cmd:
-            await self.readStdOut("get stream_info output", 0.5)
+            return await self.readStdOut("get stream_info input", 0.5)
+        elif "OUTPUT" in cmd:
+            return await self.readStdOut("get stream_info output", 0.5)
     #--------------------------------------------------------------------------------------
 
     async def result_avdeccctl_get_stream_info(self, readLines, endpointType):
@@ -339,7 +341,7 @@ class AVDECC_Controller(threading.Thread):
     async def command_avdeccctl_select(self, cmd):
         print("command_avdeccctl_select")
         self.writeStdin("%s\n"%(cmd))
-        await self.readStdOut("select", 0.5)
+        return await self.readStdOut("select", 0.5)
     #--------------------------------------------------------------------------------------
 
     async def result_avdeccctl_select(self, readLines):
@@ -351,7 +353,7 @@ class AVDECC_Controller(threading.Thread):
     async def command_avdeccctl_view(self, cmd):
         print("command_avdeccctl_view")
         self.writeStdin("%s\n"%(cmd))
-        await self.readStdOut("view", 0.5)
+        return await self.readStdOut("view", 0.5)
     #--------------------------------------------------------------------------------------
 
     async def result_avdeccctl_view(self, readLines):
