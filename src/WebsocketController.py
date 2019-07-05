@@ -14,11 +14,10 @@ import posix_ipc
 import ipc_utils as utils
 
 from avdeccEntity import AVDECCEntity, serializeList2Str, deserializeStr2List
-from avdecccmdlineWrapper import AVDECC_Controller
 
 
 class WebsocketController():
-    def __init__(self, argv, ipaddress='127.0.0.1', port=5678):
+    def __init__(self, argv, ipaddress='127.0.0.1', port=5678, dev):
         print("setup websocket server")    
     
 
@@ -59,9 +58,6 @@ class WebsocketController():
         
         
         
-        #self.avdeccctl = AVDECC_Controller("enp1s0", cmd_path ="/home/christoph/source_code/github-kuhr/OpenAvnu.git/avdecc-lib/controller/app/cmdline/avdecccmdline")
-        self.avdeccctl = AVDECC_Controller(argv, "enp1s0", cmd_path ="/opt/OpenAvnu/avdecc-lib/controller/app/cmdline/avdecccmdline")
-        self.avdeccctl.start()
         
         self.semaphore_mq_wrapper = 0
         while self.semaphore_mq_wrapper == 0:
@@ -83,7 +79,7 @@ class WebsocketController():
               
             
         
-        print("start websocket server", self.avdeccctl)
+        print("start websocket server")
         self.start_server = websockets.serve(self.websocketLoop, ipaddress, port)
 
     #-------------------------------------------------------------------------------------------------------------------------

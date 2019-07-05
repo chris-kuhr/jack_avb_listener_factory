@@ -9,11 +9,13 @@ import asyncio
 
 from QtController import QtController
 from WebsocketController import WebsocketController
+from avdecccmdlineWrapper import AVDECC_Controller
   
 def main(argv):
     ipaddress ="127.0.0.1"
     port = 5678
     qt = False
+    dev = "ens1f0"
     
     
     try:
@@ -28,6 +30,8 @@ def main(argv):
          sys.exit()
       elif opt in ("-s", "--server"):
          ipaddress = arg
+      elif opt in ("-d", "--device"):
+         dev = arg
       elif opt in ("-p", "--port"):
          port = arg
       elif opt in ("-q", "--qt"):
@@ -41,8 +45,11 @@ def main(argv):
     
         sys.exit(qApp.exec_())  
     else:    
-        wsCtl = WebsocketController(sys.argv, ipaddress, port)
-        
+    
+        wsCtl = WebsocketController(sys.argv, ipaddress, port, dev)        
+        self.avdeccctl = AVDECC_Controller(argv, dev, cmd_path ="/home/christoph/source_code/github-kuhr/OpenAvnu.git/avdecc-lib/controller/app/cmdline/avdecccmdline")
+        #self.avdeccctl = AVDECC_Controller(argv, dev, cmd_path ="/opt/OpenAvnu/avdecc-lib/controller/app/cmdline/avdecccmdline")
+        self.avdeccctl.start()
         print("run until complete")
         asyncio.get_event_loop().run_until_complete(wsCtl.start_server)
         print("run forever")
