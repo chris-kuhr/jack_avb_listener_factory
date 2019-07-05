@@ -116,6 +116,9 @@ class AVDECC_Controller(threading.Thread):
         elif cmd == "connect": 
             print(cmd, "is not implemented yet...")
 
+        elif cmd == "notification": 
+            await self.notification_new_entity(readlines)
+
         elif cmd == "controller": 
             print(cmd, "is not implemented yet...")
 
@@ -163,6 +166,7 @@ class AVDECC_Controller(threading.Thread):
 
         elif cmd == "reboot": 
             print(cmd, "is not implemented yet...")
+            
         elif cmd == "select": 
             await self.result_avdeccctl_select(readLines)
         elif cmd == "set": 
@@ -301,6 +305,28 @@ class AVDECC_Controller(threading.Thread):
 
     #--------------------------------------------------------------------------------------
 
+
+
+
+
+    async def notification_new_entity(self, readlines):
+        """ [NOTIFICATION] (END_STATION_CONNECTED, 0xa0369ffffebd9493, 0, 0, 0, 0 (nil)) 
+            [NOTIFICATION] (END_STATION_READ_COMPLETED, 0xa0369ffffebd9493, 0, 0, 0, 0 (nil)) 
+        """
+        print("Notification: \n", readlines)
+    #--------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
     async def command_avdeccctl_get_stream_info(self, cmd):
         print("command_avdeccctl_get_stream_info")
         self.writeStdin("%s\n"%(cmd))
@@ -390,7 +416,7 @@ class AVDECC_Controller(threading.Thread):
             # read notification
             # check mqueue
             print("waiting for msg")
-            msg, _ = self.mq.receive()
+            msg, = await asyncio.wait_for(self.mq.receive(), 10)
             msg = msg.decode()
             if "discover" in msg:
                 print("received discover cmd")
@@ -403,6 +429,8 @@ class AVDECC_Controller(threading.Thread):
             elif "quit" in msg:
                 self.writeStdin("quit")
                 break
+            else:
+                self.readStdout("notification")
            
         self.process.kill() 
     
