@@ -417,8 +417,8 @@ class AVDECC_Controller(threading.Thread):
             # check mqueue
             print("waiting for msg")
             try:
-                msg = await asyncio.wait_for(self.mq.receive(), 10)
-                msg = msg[0].decode()
+                msg, = self.mq.receive([timeout = 10])
+                msg = msg.decode()
                 if "discover" in msg:
                     print("received discover cmd")
                     await self.command_avdeccctl_list("list")
