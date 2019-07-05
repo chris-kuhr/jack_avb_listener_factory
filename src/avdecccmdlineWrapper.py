@@ -209,11 +209,11 @@ class AVDECC_Controller(threading.Thread):
     async def choose_avdeccctl_netdev(self, readLines):
         print("choose_avdeccctl_netdev")
         for line in readLines: 
-            if line[0] == "2":
+            if line[0] == "3":
                 print(self.avb_dev)
                 resultStr = line.split("\n")[0]
                 print(resultStr)
-                self.writeStdin("2\n")
+                self.writeStdin("3\n")
                 return await self.readStdOut("", 0.5)
     #--------------------------------------------------------------------------------------
     
