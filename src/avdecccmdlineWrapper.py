@@ -432,7 +432,7 @@ class AVDECC_Controller(threading.Thread):
                     break
                     
             except (posix_ipc.BusyError, ValueError):
-                self.readStdOut("notification",10)
+                await self.readStdOut("notification",10)
             
            
         self.process.kill() 
