@@ -43,26 +43,10 @@ class AVDECC_Controller(threading.Thread):
             try:
                 self.semaphore = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME1"])
             except posix_ipc.ExistentialError:
+                time.sleep(0.5)
                 pass
         self.semaphore.release()
             
-            
-        self.semaphore_mq_gui = 0
-        while self.semaphore_mq_gui == 0:
-            try:
-                self.semaphore_mq_gui = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME2"])  
-            except posix_ipc.ExistentialError:
-                pass  
-        self.semaphore_mq_gui.release()
-             
-             
-        self.semaphore_mq_wrapper = 0
-        while self.semaphore_mq_wrapper == 0:
-            try:
-                self.semaphore_mq_wrapper = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME3"], posix_ipc.O_CREX)
-            except posix_ipc.ExistentialError:
-                pass
-        self.semaphore_mq_wrapper.release()
         
         
         
@@ -411,11 +395,7 @@ class AVDECC_Controller(threading.Thread):
         posix_ipc.unlink_shared_memory(self.params["SHARED_MEMORY_NAME"])
         
         self.semaphore.release()
-        self.semaphore_mq_gui.release()
-        self.semaphore_mq_wrapper.release()
         self.semaphore.unlink()
-        self.semaphore_mq_gui.unlink()
-        self.semaphore_mq_wrapper.unlink()
         self.mapfile.close()
         self.mq.close()
         return await self.process.wait() # wait for the child process to exit

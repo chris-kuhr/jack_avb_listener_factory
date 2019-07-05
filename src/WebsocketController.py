@@ -34,38 +34,9 @@ class WebsocketController():
         self.mapfile = mmap.mmap(self.memory.fd, self.memory.size)
         
         
-        self.semaphore = 0
-        while self.semaphore == 0:
-            try:
-                self.semaphore = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME1"], posix_ipc.O_CREX)
-            except posix_ipc.ExistentialError:
-                pass
+        self.semaphore = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME1"], posix_ipc.O_CREX)
         self.semaphore.release()
             
-            
-        self.semaphore_mq_gui = 0
-        while self.semaphore_mq_gui == 0:
-            try:
-                self.semaphore_mq_gui = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME2"], posix_ipc.O_CREX)  
-            except posix_ipc.ExistentialError:
-                pass  
-        self.semaphore_mq_gui.release()
-             
-             
-
-        
-
-        
-        
-        
-        
-        self.semaphore_mq_wrapper = 0
-        while self.semaphore_mq_wrapper == 0:
-            try:
-                self.semaphore_mq_wrapper = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME3"])
-            except posix_ipc.ExistentialError:
-                pass
-        self.semaphore_mq_wrapper.release()
                 
         self.running = False
         
