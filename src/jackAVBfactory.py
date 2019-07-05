@@ -45,10 +45,10 @@ def main(argv):
     
         sys.exit(qApp.exec_())  
     else:    
-    
-        wsCtl = WebsocketController(sys.argv, ipaddress, port, avb_dev)        
+          
         self.avdeccctl = AVDECC_Controller(argv, avb_dev, cmd_path ="/home/christoph/source_code/github-kuhr/OpenAvnu.git/avdecc-lib/controller/app/cmdline/avdecccmdline")
         #self.avdeccctl = AVDECC_Controller(argv, avb_dev, cmd_path ="/opt/OpenAvnu/avdecc-lib/controller/app/cmdline/avdecccmdline")
+        wsCtl = WebsocketController(sys.argv, ipaddress, port, avb_dev)  
         self.avdeccctl.start()
         print("run until complete")
         asyncio.get_event_loop().run_until_complete(wsCtl.start_server)
