@@ -117,7 +117,7 @@ class AVDECC_Controller(threading.Thread):
             print(cmd, "is not implemented yet...")
 
         elif cmd == "notification": 
-            await self.notification_new_entity(readlines)
+            result = await self.notification_new_entity(readLines)
 
         elif cmd == "controller": 
             print(cmd, "is not implemented yet...")
@@ -314,6 +314,7 @@ class AVDECC_Controller(threading.Thread):
             [NOTIFICATION] (END_STATION_READ_COMPLETED, 0xa0369ffffebd9493, 0, 0, 0, 0 (nil)) 
         """
         print("Notification: \n", readlines)
+        return readlines
     #--------------------------------------------------------------------------------------
 
 
