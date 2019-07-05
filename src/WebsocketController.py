@@ -59,7 +59,7 @@ class WebsocketController():
         
         
         
-        self.avdeccctl = AVDECC_Controller("ens2f1", cmd_path ="/home/soundjack/OpenAvnu.git/avdecc-lib/controller/app/cmdline/avdecccmdline")
+        self.avdeccctl = AVDECC_Controller(argv, "ens2f1", cmd_path ="/home/soundjack/OpenAvnu.git/avdecc-lib/controller/app/cmdline/avdecccmdline")
         #self.avdeccctl = AVDECC_Controller(argv, "enp1s0", cmd_path ="/opt/OpenAvnu/avdecc-lib/controller/app/cmdline/avdecccmdline")
         self.avdeccctl.start()
         
