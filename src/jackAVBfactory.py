@@ -19,18 +19,18 @@ def main(argv):
     
     
     try:
-       opts, args = getopt.getopt(argv,"hqs:p:",["server=","port="])
+       opts, args = getopt.getopt(argv,"hqs:p:d:",["server=","port=","avb-dev="])
     except getopt.GetoptError:
-       print ('-q= Qt5 Gui\n -s=server ip\n -p=listening port\n')
+       print ('-q= Qt5 Gui\n -s=server ip\n -p=listening port -d=avb-dev\n')
        sys.exit(2)
            
     for opt, arg in opts:
       if opt == '-h':
-         print ('-q= Qt5 Gui\n -s=server ip\n -p=listening port\n')
+         print ('-q= Qt5 Gui\n -s=server ip\n -p=listening port -d=avb-dev\n')
          sys.exit()
       elif opt in ("-s", "--server"):
          ipaddress = arg
-      elif opt in ("-d", "--device"):
+      elif opt in ("-d", "--avb-device"):
          dev = arg
       elif opt in ("-p", "--port"):
          port = arg
