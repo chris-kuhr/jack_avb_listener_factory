@@ -413,7 +413,7 @@ class AVDECC_Controller(threading.Thread):
             # check mqueue
             print("waiting for msg")
             try:
-                msg, = self.mq.receive(10)
+                msg, = self.mq.receive(10000)
                 msg = msg.decode()
                 if "discover" in msg:
                     print("received discover cmd")
@@ -429,7 +429,6 @@ class AVDECC_Controller(threading.Thread):
                     
             except (posix_ipc.BusyError, ValueError):
                 await self.command_avdeccctl_list("list")
-                self.mq.send("listupdate")
             
            
         self.process.kill() 
