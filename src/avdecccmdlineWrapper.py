@@ -27,6 +27,7 @@ class AVDECC_Controller(threading.Thread):
         self.endpointType = ""
         self.streamId = ""
         self.destMAC = ""
+        self.entity_list = []
 
         # open shared mem segment
 
@@ -89,7 +90,7 @@ class AVDECC_Controller(threading.Thread):
     #--------------------------------------------------------------------------------------
 
     async def readStdOut(self, cmd, timeout): 
-        #print("readStdOut")
+        print("readStdOut")
         readLines = []
         result = None
         while(True):
@@ -225,7 +226,7 @@ class AVDECC_Controller(threading.Thread):
     async def result_avdeccctl_list(self,readLines):
         print("result_avdeccctl_list")
         foundList = False
-        entity_list = []
+        entity_list_local = []
         
         for line in readLines: 
             print(line)
@@ -239,7 +240,7 @@ class AVDECC_Controller(threading.Thread):
                         
                     avdecc_entity = AVDECCEntity(0,"","")
                     entityId = ""
-
+                    
                     for idx, field in enumerate(resultStr):
                         if idx == 0:
                             ll = field.split(" ")
@@ -284,19 +285,13 @@ class AVDECC_Controller(threading.Thread):
                             print(avdecc_entity.destMAC)
                         
                         
-                        entity_list.append(avdecc_entity)
-                        print("AVDECC ctl: ", entity_list[-1].encodeString())
+                        entity_list_local.append(avdecc_entity)
+                        print("AVDECC ctl: ", entity_list_local[-1].encodeString())
 
+        
+        self.entity_list = entity_list_local
 
-
-        #
-        #
-        #   create json object
-        #
-        #
-
-
-        serStr = serializeList2Str(entity_list)
+        serStr = serializeList2Str(self.entity_list)
 
         self.semaphore.acquire()
         utils.write_to_memory(self.mapfile, serStr)
@@ -418,7 +413,7 @@ class AVDECC_Controller(threading.Thread):
             # check mqueue
             print("waiting for msg")
             try:
-                msg, = self.mq.receive(5)
+                msg, = self.mq.receive(10)
                 msg = msg.decode()
                 if "discover" in msg:
                     print("received discover cmd")
@@ -433,7 +428,8 @@ class AVDECC_Controller(threading.Thread):
                     break
                     
             except (posix_ipc.BusyError, ValueError):
-                await self.readStdOut("notification",10)
+                await self.command_avdeccctl_list("list")
+                self.mq.send("listupdate")
             
            
         self.process.kill() 

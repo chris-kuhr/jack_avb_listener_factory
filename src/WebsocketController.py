@@ -23,7 +23,7 @@ class WebsocketController():
     
 
         self.params = utils.read_params()
-
+        self.serList = []
 
         # Create the message queue.
         self.mq = posix_ipc.MessageQueue(self.params["MESSAGE_QUEUE_NAME"], posix_ipc.O_CREX)
@@ -120,16 +120,8 @@ class WebsocketController():
         
         self.mq.send("discover")
         self.waitForMsg("ack")    
-        self.updateAVBEntityList()
-        print("List lengths: ", len(self.listeners), len(self.talkers))
-        
-        for l in self.listeners:
-            print(l)
-            await self.discovered(ws, l)
-            
-        for t in self.talkers:
-            print(t)
-            await self.discovered(ws, t)
+        if self.readList():
+            self.updateAVBEntityList()
         
         while(self.running):
             '''
@@ -175,8 +167,9 @@ class WebsocketController():
                 '''
                 Talk to AVDECC Wrapper
                 '''
-               
-                #await self.discovered(ws, None)
+                if self.readList():
+                    self.updateAVBEntityList()
+                    
                 pass
     #-------------------------------------------------------------------------------------------------------------------------
   
@@ -184,13 +177,15 @@ class WebsocketController():
         newEndpoint = AVDECCEntity(0,"","")
         if msg_dec[key][0]["EPType"] == "talker":
             newEndpoint.setfromJSONObject(msg_dec[key][0], len(self.talkers)+1)
+            newEndpoint.execDomain = "h"
             self.talkers.append(newEndpoint)
+            await self.discovered(ws, self.talkers[-1])
         if msg_dec[key][0]["EPType"] == "listener":
             newEndpoint.setfromJSONObject(msg_dec[key][0], len(self.listener)+1)
-            self.listener.append(newEndpoint)
+            newEndpoint.execDomain = "h"
+            self.listener.append(newEndpoint)        
+            await self.discovered(ws, self.listener[-1])
             
-
-        await self.discovered(ws, newEndpoint )
     
     #-------------------------------------------------------------------------------------------------------------------------  
   
@@ -255,16 +250,7 @@ class WebsocketController():
             await ws.send( json.dumps( {"disconnected":[status, foundTalker.getJSONprepObject(),foundListener.getJSONprepObject()]} ) )
     #-------------------------------------------------------------------------------------------------------------------------
   
-  
-    async def discovered(self, ws, endpointObj): 
-        if endpointObj is None:
-            #self.talkers.append( AVDECCEntity(len(self.talkers)+1, "discovered%d"%(len(self.talkers)+1),"talker") )
-            await ws.send( json.dumps( {"discovered":[self.talkers[-1].getJSONprepObject()]} ) )
-        else:
-            await ws.send( json.dumps( {"discovered":[endpointObj.getJSONprepObject()]} ) )
-    #-------------------------------------------------------------------------------------------------------------------------
-        
-    def updateAVBEntityList(self):
+    def readList(self):
         self.semaphore.acquire()
         serStr = utils.read_from_memory(self.mapfile)
         self.semaphore.release()
@@ -277,7 +263,16 @@ class WebsocketController():
         
         serList = deserializeStr2List(serStr)
 
-        for device in serList: 
+        if len(self.serList) != len(serList):
+            self.serList = serList
+        
+            return True
+        return False
+    #-------------------------------------------------------------------------------------------------------------------------
+        
+
+    def updateAVBEntityList(self):
+        for device in self.serList: 
             print("ws_server: ", device) 
             entity = AVDECCEntity(0, "","")  
             print("endpointtype", entity.endpointType)
@@ -286,18 +281,29 @@ class WebsocketController():
                 print("endpointtype", entity.endpointType)
                 if "talker" in entity.endpointType: 
                     entity.idx = len(self.talkers)+1
+                    entity.execDomain = "n"
                     self.talkers.append(entity)
+                    await self.discovered(ws, self.talkers[-1])
                 elif "listener" in entity.endpointType: 
-                    entity.idx = len(self.listeners)+1    
+                    entity.idx = len(self.listeners)+1 
+                    entity.execDomain = "n"   
                     self.listeners.append(entity)
+                    await self.discovered(ws, self.listeners[-1])
                 print("endpointtype", entity.endpointType)
             else:
                 break
             
-            print("endpointtype", entity.endpointType)
+            print("endpointtype", entity.endpointType)            
+        
+        print("List lengths: ", len(self.listeners), len(self.talkers))
     #-------------------------------------------------------------------------------------------------------------------------
      
     
+  
+    async def discovered(self, ws, endpointObj): 
+        await ws.send( json.dumps( {"discovered":[endpointObj.getJSONprepObject()]} ) )
+    #-------------------------------------------------------------------------------------------------------------------------
+        
 #=======================================================================================================================
       
 

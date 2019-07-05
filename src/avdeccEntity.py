@@ -4,6 +4,7 @@ class AVDECCEntity(object):
     def __init__(self, idx,name,endpointType):        
         self.idx = idx # talker: row; listener: col;
         self.jackclient_name = "j"+name
+        self.execDomain = "n" #n for network, h for host
         self.name = name
         self.entityId = b'aabbcc0011ddeeff'
         self.firmwareVersion = "0"
@@ -16,11 +17,11 @@ class AVDECCEntity(object):
     #-------------------------------------------
     
     def getJSONObject(self):
-        return json.dumps({"IDX":self.idx, "JACKName":self.jackclient_name, "EPName":self.name, "EID":self.entityId.decode("utf8"), "fwV":self.firmwareVersion, "MACaddr":self.MACAddr.decode("utf8"), "EPType":self.endpointType, "CCnt":self.channelCount, "SR":self.sampleRate_k, "DSTMAC":self.destMAC.decode("utf8"), "SID":self.streamId.decode("utf8")})
+        return json.dumps({"IDX":self.idx, "ExecDomain":self.execDomain, "JACKName":self.jackclient_name, "EPName":self.name, "EID":self.entityId.decode("utf8"), "fwV":self.firmwareVersion, "MACaddr":self.MACAddr.decode("utf8"), "EPType":self.endpointType, "CCnt":self.channelCount, "SR":self.sampleRate_k, "DSTMAC":self.destMAC.decode("utf8"), "SID":self.streamId.decode("utf8")})
     #-------------------------------------------
     
     def getJSONprepObject(self):
-        return {"IDX":self.idx, "JACKName":self.jackclient_name, "EPName":self.name, "EID":self.entityId.decode("utf8"), "fwV":self.firmwareVersion, "MACaddr":self.MACAddr.decode("utf8"), "EPType":self.endpointType, "CCnt":self.channelCount, "SR":self.sampleRate_k, "DSTMAC":self.destMAC.decode("utf8"), "SID":self.streamId.decode("utf8")}
+        return {"IDX":self.idx, "ExecDomain":self.execDomain, "JACKName":self.jackclient_name, "EPName":self.name, "EID":self.entityId.decode("utf8"), "fwV":self.firmwareVersion, "MACaddr":self.MACAddr.decode("utf8"), "EPType":self.endpointType, "CCnt":self.channelCount, "SR":self.sampleRate_k, "DSTMAC":self.destMAC.decode("utf8"), "SID":self.streamId.decode("utf8")}
     #-------------------------------------------
     
     def setfromJSONObject(self, jsonDec, idx=None):
@@ -28,6 +29,7 @@ class AVDECCEntity(object):
             self.idx = jsonDec["IDX"] 
         else:
             self.idx = idx
+        self.execDomain = jsonDec["ExecDomain"]
         self.jackclient_name = jsonDec["JACKName"]
         self.name = jsonDec["EPName"]
         self.entityId = bytearray(jsonDec["EID"].encode("utf8"))
@@ -41,7 +43,7 @@ class AVDECCEntity(object):
     #-------------------------------------------
 
     def encodeString(self):
-        return "%d;%s;%s;%s;%s;%s;%s;%d;%d;%s;%s;" %( self.idx, self.jackclient_name, self.name, self.entityId.decode("utf8"), self.firmwareVersion, self.MACAddr.decode("utf8"), self.endpointType, int(self.channelCount), int(self.sampleRate_k), self.destMAC.decode("utf8"), self.streamId.decode("utf8")) 
+        return "%d;%s;%s;%s;%s;%s;%s;%s;%d;%d;%s;%s;" %( self.idx, self.execDomain, self.jackclient_name, self.name, self.entityId.decode("utf8"), self.firmwareVersion, self.MACAddr.decode("utf8"), self.endpointType, int(self.channelCount), int(self.sampleRate_k), self.destMAC.decode("utf8"), self.streamId.decode("utf8")) 
     #-------------------------------------------
 
 
@@ -51,16 +53,17 @@ class AVDECCEntity(object):
             self.idx = int(propList[0])
         except ValueError:            
             return -1
-        self.jackclient_name = propList[1]
-        self.name = propList[2]
-        self.entityId = bytearray(propList[3].encode("utf8"))
-        self.firmwareVersion = propList[4]
-        self.MACAddr = bytearray(propList[5].encode("utf8"))
-        self.endpointType = propList[6]
-        self.channelCount = int(propList[7])
-        self.sampleRate_k = int(propList[8])
-        self.destMAC = bytearray(propList[9].encode("utf8"))
-        self.streamId = bytearray(propList[10].encode("utf8"))        
+        self.execDomain = propList[1]
+        self.jackclient_name = propList[2]
+        self.name = propList[3]
+        self.entityId = bytearray(propList[4].encode("utf8"))
+        self.firmwareVersion = propList[5]
+        self.MACAddr = bytearray(propList[6].encode("utf8"))
+        self.endpointType = propList[7]
+        self.channelCount = int(propList[8])
+        self.sampleRate_k = int(propList[9])
+        self.destMAC = bytearray(propList[10].encode("utf8"))
+        self.streamId = bytearray(propList[11].encode("utf8"))        
         return 1
     #-------------------------------------------
 
