@@ -417,7 +417,7 @@ class AVDECC_Controller(threading.Thread):
             # check mqueue
             print("waiting for msg")
             try:
-                msg, = self.mq.receive([timeout = 10])
+                msg, = self.mq.receive(timeout = 10)
                 msg = msg.decode()
                 if "discover" in msg:
                     print("received discover cmd")
