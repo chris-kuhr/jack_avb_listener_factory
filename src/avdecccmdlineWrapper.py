@@ -416,20 +416,22 @@ class AVDECC_Controller(threading.Thread):
             # read notification
             # check mqueue
             print("waiting for msg")
-            msg, = await asyncio.wait_for(self.mq.receive(), 10)
-            msg = msg.decode()
-            if "discover" in msg:
-                print("received discover cmd")
-                await self.command_avdeccctl_list("list")
-                self.mq.send("ack")
-            elif "connect" in msg:
-                pass
-            elif "view" in msg:
-                pass
-            elif "quit" in msg:
-                self.writeStdin("quit")
-                break
-            else:
+            try:
+                msg, = await asyncio.wait_for(self.mq.receive(), 10)
+                msg = msg.decode()
+                if "discover" in msg:
+                    print("received discover cmd")
+                    await self.command_avdeccctl_list("list")
+                    self.mq.send("ack")
+                elif "connect" in msg:
+                    pass
+                elif "view" in msg:
+                    pass
+                elif "quit" in msg:
+                    self.writeStdin("quit")
+                    break
+                    
+            except asyncio.TimeoutError:
                 self.readStdout("notification")
            
         self.process.kill() 
