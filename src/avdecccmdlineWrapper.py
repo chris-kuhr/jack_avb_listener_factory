@@ -18,7 +18,7 @@ from PyQt5.QtCore import QObject
 
 class AVDECC_Controller(threading.Thread):
 
-    def __init__(self, argv, avb_dev, cmd_path="/opt/OpenAvnu/avdecc-lib/controller/app/cmdline/avdecccmdline"):
+    def __init__(self, argv, avb_dev="ens2f1", cmd_path="/opt/OpenAvnu/avdecc-lib/controller/app/cmdline/avdecccmdline"):
         super().__init__()
         self.argv = argv
         self.avdecccmdline_cmd = cmd_path

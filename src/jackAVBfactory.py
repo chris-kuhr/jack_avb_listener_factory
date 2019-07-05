@@ -46,7 +46,7 @@ def main(argv):
         sys.exit(qApp.exec_())  
     else:    
     
-        wsCtl = WebsocketController(sys.argv, ipaddress, port, dev)        
+        wsCtl = WebsocketController(sys.argv, ipaddress, port, avb_dev)        
         self.avdeccctl = AVDECC_Controller(argv, dev, cmd_path ="/home/christoph/source_code/github-kuhr/OpenAvnu.git/avdecc-lib/controller/app/cmdline/avdecccmdline")
         #self.avdeccctl = AVDECC_Controller(argv, dev, cmd_path ="/opt/OpenAvnu/avdecc-lib/controller/app/cmdline/avdecccmdline")
         self.avdeccctl.start()

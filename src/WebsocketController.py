@@ -17,9 +17,9 @@ from avdeccEntity import AVDECCEntity, serializeList2Str, deserializeStr2List
 
 
 class WebsocketController():
-    def __init__(self, argv, ipaddress='127.0.0.1', port=5678, dev):
+    def __init__(self, argv, ipaddress='127.0.0.1', port=5678, avb_dev="ens2f1"):
         print("setup websocket server")    
-    
+        self.avb_dev = avb_dev
 
         self.params = utils.read_params()
 
