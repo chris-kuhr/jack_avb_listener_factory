@@ -121,7 +121,7 @@ class WebsocketController():
         self.mq.send("discover")
         self.waitForMsg("ack")    
         if self.readList():
-            self.updateAVBEntityList()
+            await self.updateAVBEntityList()
         
         while(self.running):
             '''
@@ -168,7 +168,7 @@ class WebsocketController():
                 Talk to AVDECC Wrapper
                 '''
                 if self.readList():
-                    self.updateAVBEntityList()
+                    await self.updateAVBEntityList()
                     
                 pass
     #-------------------------------------------------------------------------------------------------------------------------
@@ -271,7 +271,7 @@ class WebsocketController():
     #-------------------------------------------------------------------------------------------------------------------------
         
 
-    def updateAVBEntityList(self):
+    async def updateAVBEntityList(self):
         for device in self.serList: 
             print("ws_server: ", device) 
             entity = AVDECCEntity(0, "","")  
