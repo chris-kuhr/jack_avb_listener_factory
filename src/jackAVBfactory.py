@@ -31,7 +31,7 @@ def main(argv):
       elif opt in ("-s", "--server"):
          ipaddress = arg
       elif opt in ("-d", "--avb-device"):
-         dev = arg
+         avb_dev = arg
       elif opt in ("-p", "--port"):
          port = arg
       elif opt in ("-q", "--qt"):
@@ -47,8 +47,8 @@ def main(argv):
     else:    
     
         wsCtl = WebsocketController(sys.argv, ipaddress, port, avb_dev)        
-        self.avdeccctl = AVDECC_Controller(argv, dev, cmd_path ="/home/christoph/source_code/github-kuhr/OpenAvnu.git/avdecc-lib/controller/app/cmdline/avdecccmdline")
-        #self.avdeccctl = AVDECC_Controller(argv, dev, cmd_path ="/opt/OpenAvnu/avdecc-lib/controller/app/cmdline/avdecccmdline")
+        self.avdeccctl = AVDECC_Controller(argv, avb_dev, cmd_path ="/home/christoph/source_code/github-kuhr/OpenAvnu.git/avdecc-lib/controller/app/cmdline/avdecccmdline")
+        #self.avdeccctl = AVDECC_Controller(argv, avb_dev, cmd_path ="/opt/OpenAvnu/avdecc-lib/controller/app/cmdline/avdecccmdline")
         self.avdeccctl.start()
         print("run until complete")
         asyncio.get_event_loop().run_until_complete(wsCtl.start_server)
