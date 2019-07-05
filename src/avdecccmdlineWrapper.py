@@ -32,12 +32,6 @@ class AVDECC_Controller(threading.Thread):
 
         self.params = utils.read_params()
 
-        # Mrs. Premise has already created the semaphore and shared memory.
-        # I just need to get handles to them.
-        self.memory = posix_ipc.SharedMemory(self.params["SHARED_MEMORY_NAME"])
-        # MMap the shared memory
-        self.mapfile = mmap.mmap(self.memory.fd, self.memory.size)
-        
         self.semaphore = 0
         while self.semaphore == 0:
             try:
@@ -46,6 +40,13 @@ class AVDECC_Controller(threading.Thread):
                 time.sleep(0.5)
                 pass
         self.semaphore.release()
+        
+        # Mrs. Premise has already created the semaphore and shared memory.
+        # I just need to get handles to them.
+        self.memory = posix_ipc.SharedMemory(self.params["SHARED_MEMORY_NAME"])
+        # MMap the shared memory
+        self.mapfile = mmap.mmap(self.memory.fd, self.memory.size)
+        
             
         
         
