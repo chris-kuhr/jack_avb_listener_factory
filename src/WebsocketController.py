@@ -234,7 +234,7 @@ class WebsocketController(threading.Thread):
     #-------------------------------------------------------------------------------------------------------------------------
         
     async def updateAVBEntityList(self):
-        for device in serList: 
+        for device in self.serList: 
             print("ws_server: ", device) 
             entity = AVDECCEntity(0, "","")  
             print("endpointtype", entity.endpointType)
