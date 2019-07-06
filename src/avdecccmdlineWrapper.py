@@ -97,10 +97,10 @@ class AVDECC_Controller(threading.Thread):
             print(cmd, "is not implemented yet...")
 
         elif cmd == "get stream_info input": 
-            await self.result_avdeccctl_get_stream_info(readLines, "l")
+            result =  await self.result_avdeccctl_get_stream_info(readLines, "listener")
 
         elif cmd == "get stream_info output": 
-            await self.result_avdeccctl_get_stream_info(readLines, "t")
+            result =  await self.result_avdeccctl_get_stream_info(readLines, "ttalker")
 
         elif cmd == "get": 
             print(cmd, "is not implemented yet...")
@@ -235,19 +235,19 @@ class AVDECC_Controller(threading.Thread):
                         avdecc_entity.endpointType = endpoint
                         
                         if "listener" in endpoint:
-                            await self.command_avdeccctl_get_stream_info("get stream_info STREAM_INPUT 0")     
-                            for sformat in self.sformats:
+                            stream_info = await self.command_avdeccctl_get_stream_info("get stream_info STREAM_INPUT 0")     
+                            for sformat in stream_info[0]:
                                 if int(sformat[0].split("KHZ")[0]) == avdecc_entity.sampleRate_k:
                                     avdecc_entity.channelCount = int(sformat[1].split("CH")[0]) 
             
                         elif "talker" in endpoint:
-                            await self.command_avdeccctl_get_stream_info("get stream_info STREAM_OUTPUT 0") 
-                            for sformat in self.sformats:
+                            stream_info = await self.command_avdeccctl_get_stream_info("get stream_info STREAM_OUTPUT 0") 
+                            for sformat in stream_info[0]:
                                 if int(sformat[0].split("KHZ")[0]) == avdecc_entity.sampleRate_k:
                                     avdecc_entity.channelCount = int(sformat[1].split("CH")[0]) 
-                            avdecc_entity.streamId = bytearray(self.streamId.encode("utf8"))
+                            avdecc_entity.streamId = bytearray(stream_info[1].encode("utf8"))
                             print(avdecc_entity.streamId)
-                            avdecc_entity.destMAC = bytearray(self.destMAC.encode("utf8"))
+                            avdecc_entity.destMAC = bytearray(stream_info[2].encode("utf8"))
                             print(avdecc_entity.destMAC)
                         
                         
@@ -283,9 +283,9 @@ class AVDECC_Controller(threading.Thread):
 
     async def result_avdeccctl_get_stream_info(self, readLines, endpointType):
         print("result_avdeccctl_get_stream_info", endpointType)
-        self.sformats = []
-        self.streamId = ""
-        self.destMAC = ""
+        sformats = []
+        streamId = ""
+        destMAC = ""
         for line in readLines:
             # Stream format: IEC...48KHZ_8CH
             # Stream ID: 0x00019f1c391e0000
@@ -296,18 +296,25 @@ class AVDECC_Controller(threading.Thread):
                 try:
                     sformat = line.split("\n")[0].split("IEC...")[1].split("_")
                     print( sformat ) 
-                    self.sformats.append(sformat)  
+                    sformats.append(sformat)  
                 except IndexError:
-                    self.sformats.append("2")  
+                    sformats.append("2")  
                     
-            if "t" in endpointType:    
+                    
+            if "talker" in endpointType:    
                 if "Stream ID" in line:
-                    self.streamId = line.split("\n")[0].split(":")[1].lstrip().split("x")[1]
+                    streamId = line.split("\n")[0].split(":")[1].lstrip().split("x")[1]
                     print( self.streamId ) 
                 if "Stream Destination MAC" in line:
-                    self.destMAC = line.split("\n")[0].split(":")[1].lstrip()
-                    print( self.destMAC )            
-    #--------------------------------------------------------------------------------------
+                    destMAC = line.split("\n")[0].split(":")[1].lstrip()
+                    print( self.destMAC ) 
+                             
+        if len(sformats) > 0:
+            if streamId == "" and destMAC == "":
+                return [sformats]
+            else:
+                return [sformats, streamId, destMAC]
+                 #--------------------------------------------------------------------------------------
 
     async def command_avdeccctl_select(self, cmd):
         print("command_avdeccctl_select")
