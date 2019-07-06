@@ -79,7 +79,7 @@ class WebsocketController(threading.Thread):
         self.mq.send("discover")
         self.waitForMsg("ack")   
         if self.readList():
-            await self.updateAVBEntityList()
+            await self.updateAVBEntityList(ws)
             
         print("List lengths: \n listeners", len(self.listeners),  " talkers ",len(self.talkers),  " serList ",len(self.serList))
                 
@@ -126,7 +126,7 @@ class WebsocketController(threading.Thread):
             except asyncio.TimeoutError:    
                   
                 if self.readList():
-                    await self.updateAVBEntityList()
+                    await self.updateAVBEntityList(ws)
                     
                 print("List lengths: \n listeners", len(self.listeners),  " talkers ",len(self.talkers),  " serList ",len(self.serList))
                 pass
@@ -233,7 +233,7 @@ class WebsocketController(threading.Thread):
         return False
     #-------------------------------------------------------------------------------------------------------------------------
         
-    async def updateAVBEntityList(self):
+    async def updateAVBEntityList(self, ws):
         for device in self.serList: 
             print("ws_server: ", device) 
             entity = AVDECCEntity(0, "","")  
