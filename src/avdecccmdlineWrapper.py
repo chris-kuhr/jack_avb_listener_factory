@@ -383,7 +383,7 @@ class AVDECC_Controller(threading.Thread):
     
     def run(self):
         loop = asyncio.new_event_loop()
-        #asyncio.set_event_loop(loop)
+        asyncio.set_event_loop(loop)
         result = loop.run_until_complete(self.run_command(self.avdecccmdline_cmd))
  #--------------------------------------------------------------------------------------
 

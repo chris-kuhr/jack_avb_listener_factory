@@ -260,9 +260,9 @@ class WebsocketController(threading.Thread):
      
     def run(self):
         loop = asyncio.new_event_loop()
-        #asyncio.set_event_loop(loop)
+        asyncio.set_event_loop(loop)
         result = loop.run_until_complete(self.start_server)
-        #asyncio.get_event_loop().run_forever() 
+        asyncio.get_event_loop().run_forever() 
  #--------------------------------------------------------------------------------------
     
 #=======================================================================================================================
