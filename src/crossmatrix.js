@@ -88,6 +88,7 @@ $(document).ready(function(){
         console.log("create JACK Client");
         var sendObj = JSON.stringify({"newEndpoint":[
                                             {"IDX":"-1", 
+                                            "execDomain":"h", 
                                             "JACKName":$('#form_JACKName').val(), 
                                             "EPName":$('#form_EPName').val(), 
                                             "EID":"0", 

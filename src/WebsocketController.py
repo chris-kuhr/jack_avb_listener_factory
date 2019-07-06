@@ -38,6 +38,7 @@ class WebsocketController(threading.Thread):
         self.listeners = []
         self.talkers = []
         
+        self.serList = []
                
         print("start websocket server")
         self.start_server = websockets.serve(self.websocketLoop, ipaddress, port)
@@ -75,18 +76,12 @@ class WebsocketController(threading.Thread):
         self.talkers = []
         
         self.mq.send("discover")
-        self.waitForMsg("ack")    
-        self.updateAVBEntityList()
-        print("List lengths: ", len(self.listeners), len(self.talkers))
-        
-        for l in self.listeners:
-            print(l)
-            await self.discovered(ws, l)
+        self.waitForMsg("ack")   
+        if self.readList():
+            await self.updateAVBEntityList()
             
-        for t in self.talkers:
-            print(t)
-            await self.discovered(ws, t)
-        
+        print("List lengths: \n listeners", len(self.listeners),  " talkers ",len(self.talkers),  " serList ",len(self.serList))
+                
         while(self.running):
             '''
             Wait for Websockets Messages from crossmatrix.js
@@ -117,7 +112,7 @@ class WebsocketController(threading.Thread):
                          
                         break          
                     elif key == "newEndpoint":
-                        await self.newEndpoint(ws, key, msg_dec)              
+                        await self.newHostEndpoint(ws, key, msg_dec)              
                     elif key == "reqListener":
                         await self.reqListener(ws, key, msg_dec)
                     elif key == "reqTalker":
@@ -128,24 +123,25 @@ class WebsocketController(threading.Thread):
                         await self.disconnect(ws, key, msg_dec)
                               
             except asyncio.TimeoutError:    
-                '''
-                Talk to AVDECC Wrapper
-                '''
-               
-                #await self.discovered(ws, None)
+                  
+                if self.readList():
+                    await self.updateAVBEntityList()
+                    
+                print("List lengths: \n listeners", len(self.listeners),  " talkers ",len(self.talkers),  " serList ",len(self.serList))
                 pass
     #-------------------------------------------------------------------------------------------------------------------------
   
-    async def newEndpoint(self, ws, key, msg_dec):
+    async def newHostEndpoint(self, ws, key, msg_dec):
         newEndpoint = AVDECCEntity(0,"","")
         if msg_dec[key][0]["EPType"] == "talker":
             newEndpoint.setfromJSONObject(msg_dec[key][0], len(self.talkers)+1)
-            self.talkers.append(newEndpoint)
+            if not any(talker.name == entity.name for talker in self.talkers):
+                self.talkers.append(newEndpoint)
         if msg_dec[key][0]["EPType"] == "listener":
             newEndpoint.setfromJSONObject(msg_dec[key][0], len(self.listener)+1)
-            self.listener.append(newEndpoint)
+            if not any(listener.name == entity.name for listener in self.listeners):
+                self.listener.append(newEndpoint)
             
-
         await self.discovered(ws, newEndpoint )
     
     #-------------------------------------------------------------------------------------------------------------------------  
@@ -213,14 +209,10 @@ class WebsocketController(threading.Thread):
   
   
     async def discovered(self, ws, endpointObj): 
-        if endpointObj is None:
-            #self.talkers.append( AVDECCEntity(len(self.talkers)+1, "discovered%d"%(len(self.talkers)+1),"talker") )
-            await ws.send( json.dumps( {"discovered":[self.talkers[-1].getJSONprepObject()]} ) )
-        else:
-            await ws.send( json.dumps( {"discovered":[endpointObj.getJSONprepObject()]} ) )
+        await ws.send( json.dumps( {"discovered":[endpointObj.getJSONprepObject()]} ) )
     #-------------------------------------------------------------------------------------------------------------------------
         
-    def updateAVBEntityList(self):
+    def readList(self):
         self.semaphore.acquire()
         serStr = utils.read_from_memory(self.mapfile)
         self.semaphore.release()
@@ -233,6 +225,14 @@ class WebsocketController(threading.Thread):
         
         serList = deserializeStr2List(serStr)
 
+        if len(serList) != len(self.serList):
+            self.serList = serList
+            return True
+        
+        return False
+    #-------------------------------------------------------------------------------------------------------------------------
+        
+    async def updateAVBEntityList(self):
         for device in serList: 
             print("ws_server: ", device) 
             entity = AVDECCEntity(0, "","")  
@@ -242,10 +242,14 @@ class WebsocketController(threading.Thread):
                 print("endpointtype", entity.endpointType)
                 if "talker" in entity.endpointType: 
                     entity.idx = len(self.talkers)+1
-                    self.talkers.append(entity)
+                    if not any(talker.name == entity.name for talker in self.talkers):
+                        self.talkers.append(entity)
+                        await self.discovered(ws, entity )
                 elif "listener" in entity.endpointType: 
-                    entity.idx = len(self.listeners)+1    
-                    self.listeners.append(entity)
+                    entity.idx = len(self.listeners)+1 
+                    if not any(listener.name == entity.name for listener in self.listeners):
+                        self.listeners.append(entity)
+                        await self.discovered(ws, entity )
                 print("endpointtype", entity.endpointType)
             else:
                 break
