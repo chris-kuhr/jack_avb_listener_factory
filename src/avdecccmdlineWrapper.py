@@ -12,7 +12,6 @@ import posix_ipc
 import ipc_utils as utils
 
 from avdeccEntity import AVDECCEntity, serializeList2Str, deserializeStr2List
-from PyQt5.QtCore import QObject
 
 
 
