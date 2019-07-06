@@ -72,11 +72,12 @@ class AVDECCEntity(object):
         
 def serializeList2Str(list2ser):
     retStr = ""
-    for obj in list2ser:
-        if retStr =="":
-            retStr += "%s"%obj.encodeString()
-        else:
-            retStr += "|%s"%obj.encodeString()
+    for endpoint in list2ser:
+        for obj in endpoint:
+            if retStr =="":
+                retStr += "%s"%obj.encodeString()
+            else:
+                retStr += "|%s"%obj.encodeString()
     return retStr
 #-------------------------------------------
 
