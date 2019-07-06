@@ -43,29 +43,25 @@ class WebsocketController(threading.Thread):
                
         print("start websocket server")
         self.start_server = websockets.serve(self.websocketLoop, ipaddress, port)
-
     #-------------------------------------------------------------------------------------------------------------------------
+    
     def waitForMsg(self, recv_msg):
         msg_dec = ""
         while recv_msg not in msg_dec:
             print("waiting for %s"%recv_msg)
             msg, _ = self.mq.receive()
-            msg_dec = msg.decode()
-            
-
-        return    
+            msg_dec = msg.decode()        
+        return   
     #-------------------------------------------------------------------------------------------------------------------------
 
     
     async def recvCatcher(self, ws):    
         msg = None
         try:
-            msg = await ws.recv()
-            
+            msg = await ws.recv()            
         except websockets.exceptions.ConnectionClosed:    
-            pass
-        
-        return msg
+            pass        
+        return msg    
     #-------------------------------------------------------------------------------------------------------------------------
           
   
@@ -129,8 +125,9 @@ class WebsocketController(threading.Thread):
                     await self.updateAVBEntityList(ws)
                     
                 print("List lengths: \n listeners", len(self.listeners),  " talkers ",len(self.talkers),  " serList ",len(self.serList))
-                pass
+                pass    
     #-------------------------------------------------------------------------------------------------------------------------
+  
   
     async def newHostEndpoint(self, ws, key, msg_dec):
         newEndpoint = AVDECCEntity(0,"","")
@@ -144,7 +141,6 @@ class WebsocketController(threading.Thread):
                 self.listener.append(newEndpoint)
             
         await self.discovered(ws, newEndpoint )
-    
     #-------------------------------------------------------------------------------------------------------------------------  
   
     async def reqListener(self, ws, key, msg_dec):
@@ -263,7 +259,7 @@ class WebsocketController(threading.Thread):
         asyncio.set_event_loop(loop)
         result = loop.run_until_complete(self.start_server)
         asyncio.get_event_loop().run_forever() 
- #--------------------------------------------------------------------------------------
+    #--------------------------------------------------------------------------------------
     
 #=======================================================================================================================
       

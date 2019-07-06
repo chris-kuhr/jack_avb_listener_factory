@@ -99,7 +99,7 @@ class AVDECC_Controller(threading.Thread):
             result =  await self.result_avdeccctl_get_stream_info(readLines, "listener")
 
         elif cmd == "get stream_info output": 
-            result =  await self.result_avdeccctl_get_stream_info(readLines, "ttalker")
+            result =  await self.result_avdeccctl_get_stream_info(readLines, "talker")
 
         elif cmd == "get": 
             print(cmd, "is not implemented yet...")
@@ -303,17 +303,17 @@ class AVDECC_Controller(threading.Thread):
             if "talker" in endpointType:    
                 if "Stream ID" in line:
                     streamId = line.split("\n")[0].split(":")[1].lstrip().split("x")[1]
-                    print( self.streamId ) 
+                    print( streamId ) 
                 if "Stream Destination MAC" in line:
                     destMAC = line.split("\n")[0].split(":")[1].lstrip()
-                    print( self.destMAC ) 
+                    print( destMAC ) 
                              
         if len(sformats) > 0:
             if streamId == "" and destMAC == "":
                 return [sformats]
             else:
                 return [sformats, streamId, destMAC]
-                 #--------------------------------------------------------------------------------------
+    #--------------------------------------------------------------------------------------
 
     async def command_avdeccctl_select(self, cmd):
         print("command_avdeccctl_select")
@@ -335,18 +335,17 @@ class AVDECC_Controller(threading.Thread):
 
     async def result_avdeccctl_view(self, readLines):
         print("result_avdeccctl_view")
-        self.endpointType = ""
+        endpointType = ""
         res = []
         for line in readLines:
             if "talker_stream_sources" in line and int(line.split("\n")[0].split(" ")[2]) > 0: 
-                self.endpointType = "talker"  
-                res.append(self.endpointType)
+                endpointType = "talker"  
+                res.append(endpointType)
             if "listener_stream_sinks" in line and int(line.split("\n")[0].split(" ")[2]) > 0:
-                self.endpointType = "listener"  
-                res.append(self.endpointType)
+                endpointType = "listener"  
+                res.append(endpointType)
                 
         return res
-        
     #--------------------------------------------------------------------------------------
 
         
@@ -385,5 +384,6 @@ class AVDECC_Controller(threading.Thread):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         result = loop.run_until_complete(self.run_command(self.avdecccmdline_cmd))
- #--------------------------------------------------------------------------------------
+    #--------------------------------------------------------------------------------------
+#=======================================================================================================================
 
