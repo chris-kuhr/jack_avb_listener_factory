@@ -18,7 +18,7 @@ from PyQt5.QtCore import QObject
 
 class AVDECC_Controller(threading.Thread):
 
-    def __init__(self, argv, avb_dev="ens2f1", cmd_path="/opt/OpenAvnu/avdecc-lib/controller/app/cmdline/avdecccmdline"):
+    def __init__(self, argv, semName, shmName, mqName,  avb_dev="ens2f1", cmd_path="/opt/OpenAvnu/avdecc-lib/controller/app/cmdline/avdecccmdline"):
         super().__init__()
         self.argv = argv
         self.avdecccmdline_cmd = cmd_path
@@ -28,30 +28,16 @@ class AVDECC_Controller(threading.Thread):
         self.streamId = ""
         self.destMAC = ""
 
-        # open shared mem segment
-
-        self.params = utils.read_params()
-
-        self.semaphore = 0
-        while self.semaphore == 0:
-            try:
-                self.semaphore = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME1"])
-            except posix_ipc.ExistentialError:
-                time.sleep(0.5)
-                pass
+        self.semaphore = posix_ipc.Semaphore(semName)
         self.semaphore.release()
         
         # Mrs. Premise has already created the semaphore and shared memory.
         # I just need to get handles to them.
-        self.memory = posix_ipc.SharedMemory(self.params["SHARED_MEMORY_NAME"])
+        self.memory = posix_ipc.SharedMemory(shmName)
         # MMap the shared memory
         self.mapfile = mmap.mmap(self.memory.fd, self.memory.size)
-        
-            
-        
-        
-        
-        self.mq = posix_ipc.MessageQueue(self.params["MESSAGE_QUEUE_NAME"])
+                
+        self.mq = posix_ipc.MessageQueue(mqName)
 
 
         # Once I've mmapped the file descriptor, I can close it without
@@ -356,11 +342,6 @@ class AVDECC_Controller(threading.Thread):
         return res
         
     #--------------------------------------------------------------------------------------
-    def run(self):
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        result = loop.run_until_complete(self.run_command(self.avdecccmdline_cmd))
- #--------------------------------------------------------------------------------------
 
         
     async def run_command(self, *args, timeout=None):
@@ -391,14 +372,12 @@ class AVDECC_Controller(threading.Thread):
            
         self.process.kill() 
     
-        # I could call memory.unlink() here but in order to demonstrate
-        # unlinking at the module level I'll do it that way.
-        posix_ipc.unlink_shared_memory(self.params["SHARED_MEMORY_NAME"])
-        
-        self.semaphore.release()
-        self.semaphore.unlink()
-        self.mapfile.close()
-        self.mq.close()
         return await self.process.wait() # wait for the child process to exit
     #--------------------------------------------------------------------------------------
+    
+    def run(self):
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        result = loop.run_until_complete(self.run_command(self.avdecccmdline_cmd))
+ #--------------------------------------------------------------------------------------
 

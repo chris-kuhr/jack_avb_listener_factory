@@ -10,46 +10,35 @@ import os
 import time
 
 
+import threading
 import posix_ipc
 import ipc_utils as utils
 
 from avdeccEntity import AVDECCEntity, serializeList2Str, deserializeStr2List
 
 
-class WebsocketController():
-    def __init__(self, argv, ipaddress='127.0.0.1', port=5678, avb_dev="ens2f1"):
+class WebsocketController(threading.Thread):
+    def __init__(self, argv, semName, shmName, mqName, ipaddress='127.0.0.1', port=5678, avb_dev="ens2f1"):
         print("setup websocket server")    
         self.avb_dev = avb_dev
 
-        self.params = utils.read_params()
-
-
         # Create the message queue.
-        self.mq = posix_ipc.MessageQueue(self.params["MESSAGE_QUEUE_NAME"], posix_ipc.O_CREX)
-        
-        
+        self.mq = posix_ipc.MessageQueue(mqName)
+                
         # Create the shared memory and the semaphore.
-        self.memory = posix_ipc.SharedMemory(self.params["SHARED_MEMORY_NAME"], posix_ipc.O_CREX, size=self.params["SHM_SIZE"])
+        self.memory = posix_ipc.SharedMemory(shmName)
         # MMap the shared memory
         self.mapfile = mmap.mmap(self.memory.fd, self.memory.size)
-        
-        
-        self.semaphore = posix_ipc.Semaphore(self.params["SEMAPHORE_NAME1"], posix_ipc.O_CREX)
-        self.semaphore.release()
-            
                 
+        self.semaphore = posix_ipc.Semaphore(semName)
+        self.semaphore.release()
+                            
         self.running = False
         
         self.listeners = []
         self.talkers = []
         
-        
-        #for i in range(0,4):        
-        #    self.talkers.append( AVDECCEntity(i+1, "test%d"%(i+1),"talker") )
-        #    self.listeners.append( AVDECCEntity(i+1, "test%d"%(i+1),"listener") )
-              
-            
-        
+               
         print("start websocket server")
         self.start_server = websockets.serve(self.websocketLoop, ipaddress, port)
 
@@ -264,6 +253,12 @@ class WebsocketController():
             print("endpointtype", entity.endpointType)
     #-------------------------------------------------------------------------------------------------------------------------
      
+    def run(self):
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        result = loop.run_until_complete(self.start_server)
+        #asyncio.get_event_loop().run_forever() 
+ #--------------------------------------------------------------------------------------
     
 #=======================================================================================================================
       

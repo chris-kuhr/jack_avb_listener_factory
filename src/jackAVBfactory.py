@@ -4,10 +4,8 @@ Created on April 16, 2019
 @author: christoph
 '''
 import sys, getopt
-from PyQt5 import QtCore, QtGui, QtWidgets, uic
 import asyncio
 
-from QtController import QtController
 from WebsocketController import WebsocketController
 from avdecccmdlineWrapper import AVDECC_Controller
   
@@ -19,14 +17,14 @@ def main(argv):
     
     
     try:
-       opts, args = getopt.getopt(argv,"hqs:p:d:",["server=","port=","avb-dev="])
+       opts, args = getopt.getopt(argv,"hs:p:d:",["server=","port=","avb-dev="])
     except getopt.GetoptError:
-       print ('-q= Qt5 Gui\n -s=server ip\n -p=listening port -d=avb-dev\n')
+       print ('-s=server ip\n -p=listening port\n -d=avb-dev\n')
        sys.exit(2)
            
     for opt, arg in opts:
       if opt == '-h':
-         print ('-q= Qt5 Gui\n -s=server ip\n -p=listening port -d=avb-dev\n')
+         print ('-s=server ip\n -p=listening port\n -d=avb-dev\n')
          sys.exit()
       elif opt in ("-s", "--server"):
          ipaddress = arg
@@ -34,41 +32,34 @@ def main(argv):
          avb_dev = arg
       elif opt in ("-p", "--port"):
          port = arg
-      elif opt in ("-q", "--qt"):
-         qt = True
 
-        
-
-    if qt:    
-        qApp = QtWidgets.QApplication(sys.argv)
-        pyqtavdecc = QtController()
     
-        sys.exit(qApp.exec_())  
-    else:    
+    ipc_params = utils.read_params()
+    semName = ipc_params["SEMAPHORE_NAME"]
+    shmName = ipc_params["SHARED_MEMORY_NAME"]
+    mqName = ipc_params["MESSAGE_QUEUE_NAME"]
+    semaphore = posix_ipc.Semaphore(semName, posix_ipc.O_CREX)
+    memory = posix_ipc.SharedMemory(shmName, posix_ipc.O_CREX, size=ipc_params["SHM_SIZE"])
+    mq = posix_ipc.MessageQueue(mqName, posix_ipc.O_CREX)
+
           
-        wsCtl = WebsocketController(sys.argv, ipaddress, port, avb_dev)  
-        #self.avdeccctl = AVDECC_Controller(argv, avb_dev, cmd_path ="/opt/OpenAvnu/avdecc-lib/controller/app/cmdline/avdecccmdline")
-        avdeccctl = AVDECC_Controller(argv, avb_dev, cmd_path ="/home/soundjack/OpenAvnu.git.kuhr/avdecc-lib/controller/app/cmdline/avdecccmdline")
-        avdeccctl.start()
-        print("run until complete")
-        asyncio.get_event_loop().run_until_complete(wsCtl.start_server)
-        print("run forever")
-        asyncio.get_event_loop().run_forever() 
-              
-        
-        wsCtl.mapfile.close()
-        posix_ipc.unlink_shared_memory(wsCtl.params["SHARED_MEMORY_NAME"])
+    wsCtl = WebsocketController(sys.argv, semName, shmName, mqName, ipaddress, port, avb_dev)  
+    wsCtl.start()
+    
+    #self.avdeccctl = AVDECC_Controller(argv, avb_dev, cmd_path ="/opt/OpenAvnu/avdecc-lib/controller/app/cmdline/avdecccmdline")
+    avdeccctl = AVDECC_Controller(sys.argv, semName, shmName, mqName, avb_dev, cmd_path ="/home/soundjack/OpenAvnu.git.kuhr/avdecc-lib/controller/app/cmdline/avdecccmdline")
+    avdeccctl.start()
+          
+    wsCtl.join()
+    avdeccctl.join()
+    
+    posix_ipc.unlink_shared_memory(shmName)
+    mq.close()
+    posix_ipc.unlink_message_queue(mqName)
 
-        wsCtl.mq.close()
-        posix_ipc.unlink_message_queue(wsCtl.params["MESSAGE_QUEUE_NAME"])
-
-        wsCtl.semaphore.release()
-        wsCtl.semaphore_mq_qui.release()
-        wsCtl.semaphore_mq_wrapper.release()
-        wsCtl.semaphore.unlink()
-        wsCtl.semaphore_mq_gui.unlink()
-        wsCtl.semaphore_mq_wrapper.unlink()
-        sys.exit(0)
+    semaphore.release()
+    semaphore.unlink()
+    sys.exit(0)
     #-------------------------------------------------------------------------------------------------------------------------
 #=======================================================================================================================
  
